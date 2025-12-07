@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+/* Marquee Testimonials Animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-container {
+  display: flex;
+  overflow: hidden;
+  width: 100%;
+  gap: 0;
+}
+
+.marquee-content {
+  display: flex;
+  gap: 1rem;
+  animation: marquee 80s linear infinite;
+  width: max-content;
+  flex-shrink: 0;
+}
+
+.marquee-item {
+  display: flex;
+  flex-shrink: 0;
+  width: 20rem;
+}
+
+/* Pause animation on hover */
+.group:hover .marquee-content {
+  animation-play-state: paused;
+}
