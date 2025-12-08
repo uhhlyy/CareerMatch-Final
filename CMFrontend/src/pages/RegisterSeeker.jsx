@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FaUser, FaEnvelope, FaLock } from "react-icons/fa";
 import backgroundImg from "../images/mainbg.jpg";
 import { useNavigate } from "react-router-dom";
+
 const RegisterSeeker = () => {
   const [formData, setFormData] = useState({
     first_name: "",
@@ -10,64 +11,49 @@ const RegisterSeeker = () => {
     password: "",
     confirm_password: "",
   });
+
   const [popup, setPopup] = useState({ show: false, message: "", type: "" });
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const showPopup = (message, type = "info") => {
     setPopup({ show: true, message, type });
     setTimeout(() => setPopup({ show: false, message: "", type: "" }), 2000);
   };
 
-  // Removed handleBack function
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (formData.password !== formData.confirm_password) {
       showPopup("Passwords do not match!", "error");
       return;
     }
 
     try {
-      const response = await fetch("https://sheetdb.io/api/v1/i05rli7aljn7d", {
+      const response = await fetch("http://localhost/CareerMatchFinal/CMBackend/seeker_register.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          data: [
-            {
-              "First Name": formData.first_name,
-              "Last Name": formData.last_name,
-              Email: formData.email,
-              Password: formData.password,
-            },
-          ],
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          email: formData.email,
+          password: formData.password,
         }),
       });
 
-      const result = await response.json();
-      console.log("API Response:", result);
-
-      if (response.ok && result.created) {
-        showPopup("Registration successful!", "success");
+      const data = await response.json();
+      if (data.success) {
+        showPopup(data.message, "success");
         setTimeout(() => {
-          setFormData({
-            first_name: "",
-            last_name: "",
-            email: "",
-            password: "",
-            confirm_password: "",
-          });
+          setFormData({ first_name: "", last_name: "", email: "", password: "", confirm_password: "" });
           navigate("/LoginSeeker");
         }, 1500);
       } else {
-        showPopup("Failed to register. Please check your SheetDB setup.", "error");
+        showPopup(data.message, "error");
       }
-    } catch (error) {
-      showPopup("Error connecting to the API.", "warning");
+    } catch (err) {
+      showPopup("Error connecting to the server.", "warning");
+      console.error(err);
     }
   };
 
@@ -77,15 +63,10 @@ const RegisterSeeker = () => {
       style={{ backgroundImage: `url(${backgroundImg})` }}
     >
       <div className="bg-white/70 backdrop-blur-md shadow-xl rounded-xl p-8 w-full max-w-md mt-10">
-        <h2 className="text-2xl font-bold text-center text-blue-900">
-          Welcome to CareerMatch
-        </h2>
-        <h3 className="text-xl mt-2 font-semibold text-center text-gray-700">
-          Create Your Account
-        </h3>
+        <h2 className="text-2xl font-bold text-center text-blue-900">Welcome to CareerMatch</h2>
+        <h3 className="text-xl mt-2 font-semibold text-center text-gray-700">Create Your Account</h3>
 
         <form onSubmit={handleSubmit} className="mt-6">
-          {/* First Name */}
           <div className="mb-4 relative">
             <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-800" />
             <input
@@ -99,7 +80,6 @@ const RegisterSeeker = () => {
             />
           </div>
 
-          {/* Last Name */}
           <div className="mb-4 relative">
             <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-800" />
             <input
@@ -113,7 +93,6 @@ const RegisterSeeker = () => {
             />
           </div>
 
-          {/* Email */}
           <div className="mb-4 relative">
             <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-800" />
             <input
@@ -127,7 +106,6 @@ const RegisterSeeker = () => {
             />
           </div>
 
-          {/* Password */}
           <div className="mb-4 relative">
             <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-800" />
             <input
@@ -141,7 +119,6 @@ const RegisterSeeker = () => {
             />
           </div>
 
-          {/* Confirm Password */}
           <div className="mb-4 relative">
             <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-800" />
             <input
@@ -155,7 +132,6 @@ const RegisterSeeker = () => {
             />
           </div>
 
-          {/* Register Button */}
           <button
             type="submit"
             className="w-full mt-4 bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg font-semibold"
@@ -163,26 +139,16 @@ const RegisterSeeker = () => {
             Register
           </button>
 
-          {/* Divider */}
-          <div className="flex items-center my-6">
-            <div className="flex-1 h-px bg-gray-300"></div>
-            <span className="px-2 text-gray-600">Already have an account?</span>
-            <div className="flex-1 h-px bg-gray-300"></div>
-          </div>
-
-          {/* Login Redirect */}
-          <p className="mt-2 text-center text-gray-700">
-            <a href="/LoginSeeker" className="text-blue-700 font-semibold">
-              Login
-            </a>
+          <p className="mt-6 text-center text-gray-700">
+            Already have an account?{" "}
+            <a href="/LoginSeeker" className="text-blue-700 font-semibold">Login</a>
           </p>
         </form>
       </div>
 
-      {/* Popup Notification */}
       {popup.show && (
         <div
-          className={`fixed top-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg shadow-lg text-white font-medium animate-fade ${
+          className={`fixed top-24 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg shadow-lg text-white font-medium animate-fade ${
             popup.type === "success"
               ? "bg-green-600"
               : popup.type === "error"

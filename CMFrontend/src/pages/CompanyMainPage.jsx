@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { db } from "../pages/Firebase";
-import { collection, getDocs } from "firebase/firestore";
 import NavbarCompany from "../components/NavbarCompany";
 
 const SWIPE_THRESHOLD = 120;
@@ -16,9 +14,18 @@ export default function ViewApplicants() {
 
   useEffect(() => {
     const fetchApplicants = async () => {
-      const snapshot = await getDocs(collection(db, "resumes"));
-      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setApplicants(data);
+      try {
+        const response = await fetch('http://localhost/CareerMatch/CareerMatchBackend/resume_api.php');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('Fetched applicants data:', data); // Debug: Check the full array
+        console.log('First applicant object:', data[0]); // Debug: Inspect the first item
+        setApplicants(data);
+      } catch (error) {
+        console.error('Error fetching applicants:', error);
+      }
     };
 
     fetchApplicants();
@@ -200,32 +207,25 @@ export default function ViewApplicants() {
         </div>
 
         <div className="text-2xl font-bold text-blue-900 break-words">
-          {applicant.fullName}
+          {applicant.fullName || "N/A"}
         </div>
-        <p className="text-gray-600 mb-4 break-words">{applicant.email}</p>
+        <p className="text-gray-600 mb-4 break-words">{applicant.email || "N/A"}</p>
 
         {/* Details */}
         <div className="flex flex-col gap-3 text-left">
           {[
-            ["👤", applicant.aboutMe],
-            ["🎂", applicant.birthday],
-            ["🏙️", applicant.city],
-            ["🎓", applicant.education],
-            ["⚧", applicant.gender],
-            ["💼", applicant.jobPreferences],
-            ["🗣️", applicant.languages],
-            ["💍", applicant.maritalStatus],
-            ["📞", applicant.phoneNumber],
-            ["🛠️", applicant.skills],
-            ["🏢", applicant.workExperience],
-            [
-              "⏰",
-              applicant.submittedAt
-                ? new Date(
-                    applicant.submittedAt.seconds * 1000
-                  ).toLocaleString()
-                : "N/A",
-            ],
+            ["👤", applicant.aboutMe || "N/A"],
+            ["🎂", applicant.birthday || "N/A"],
+            ["🏙️", applicant.city || "N/A"],
+            ["🎓", applicant.education || "N/A"],
+            ["⚧", applicant.gender || "N/A"],
+            ["💼", Array.isArray(applicant.jobPreferences) ? applicant.jobPreferences.join(", ") : (applicant.jobPreferences || "N/A")],
+            ["🗣️", applicant.languages || "N/A"],
+            ["💍", applicant.maritalStatus || "N/A"],
+            ["📞", applicant.phoneNumber || "N/A"],
+            ["🛠️", applicant.skills || "N/A"],
+            ["🏢", applicant.workExperience || "N/A"],
+            ["⏰", "N/A"],
           ].map(([icon, value], i) => (
             <div
               key={i}

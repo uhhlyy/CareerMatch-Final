@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   collection,
-  getDocs,
-  orderBy,
-  query,
   addDoc,
   serverTimestamp,
-} from "firebase/firestore";
-import { db } from "../pages/Firebase";
+} from "firebase/firestore";  // Keep only for saving swipes (userApplications)
+import { db } from "../pages/Firebase";  // Keep only for saving swipes
 import NavbarSeeker from "../components/NavbarSeeker";
 
 const SWIPE_THRESHOLD = 120;
@@ -22,17 +19,17 @@ export default function SeekerMainPage() {
   const draggingRef = useRef(false);
   const activeCardRef = useRef(null);
 
-  // Load jobs
+  // Load jobs from PHP/MySQL instead of Firebase
   useEffect(() => {
     const loadJobs = async () => {
       try {
-        const q = query(
-          collection(db, "jobPosts"),
-          orderBy("datePosted", "desc")
-        );
-        const snapshot = await getDocs(q);
-        const jobsData = snapshot.docs.map((doc) => doc.data());
-        setJobs(jobsData);
+        const response = await fetch('http://localhost/CareerMatchFinal/CMBackend/get_jobs.php');
+        const data = await response.json();
+        if (data.success) {
+          setJobs(data.jobs);
+        } else {
+          console.error('Error fetching jobs:', data.error);
+        }
       } catch (err) {
         console.error("Error loading jobs:", err);
       }
@@ -103,7 +100,7 @@ export default function SeekerMainPage() {
     if (decline) decline.style.opacity = diff < 0 ? Math.min(-diff / 150, 1) : 0;
   };
 
-  // Save swipe result
+  // Save swipe result (still to Firebase)
   const saveSwipe = async (job, status) => {
     try {
       await addDoc(collection(db, "userApplications"), {
@@ -230,7 +227,7 @@ export default function SeekerMainPage() {
           <p>🎓 {job.degree || "Any"}</p>
           <p>🕒 {job.experience || "Not Specified"}</p>
           <p>⚡ {job.employmentLevel || "N/A"}</p>
-          <p>🛠️ {job.skills || "N/A"}</p>
+          <p>🛠️ {job.skills || "N/A"}</p>  {/* Note: 'skills' isn't in your DB; add if needed */}
         </div>
 
         <div className="text-xl font-bold text-blue-600 mt-3">

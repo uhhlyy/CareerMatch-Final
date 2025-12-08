@@ -20,32 +20,31 @@ const LoginSeeker = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("https://sheetdb.io/api/v1/i05rli7aljn7d");
+      const response = await fetch("http://localhost/CareerMatchFinal/CMBackend/seeker_login.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email, password: formData.password })
+      });
+
       const data = await response.json();
 
-      const user = data.find(
-        (u) =>
-          (u.Email === formData.email || u.email === formData.email) &&
-          (u.Password === formData.password || u.password === formData.password)
-      );
-
-      if (user) {
-        showPopup("Login successful!", "success");
+      if (data.success) {
+        showPopup(data.message, "success");
         setTimeout(() => {
           setFormData({ email: "", password: "" });
-          navigate("/MainPage]]");
+          navigate("/SeekerMainPage");
         }, 1500);
       } else {
-        showPopup("Invalid email or password.", "error");
+        showPopup(data.message, "error");
       }
     } catch (error) {
-      showPopup("Error connecting to the database.", "warning");
+      showPopup("Error connecting to the server.", "warning");
+      console.error(error);
     }
   };
 
   const handleGoogleLogin = () => showPopup("Google login clicked");
   const handleFacebookLogin = () => showPopup("Facebook login clicked");
-  // No back button
 
   return (
     <div
@@ -127,7 +126,7 @@ const LoginSeeker = () => {
             </button>
           </div>
 
-{/* Register Redirect */}
+          {/* Register Redirect */}
           <p className="mt-6 text-center text-gray-700">
             Don’t have an account?{" "}
             <a href="/RegisterSeeker" className="text-blue-700 font-semibold">
@@ -140,7 +139,7 @@ const LoginSeeker = () => {
       {/* Popup Notification */}
       {popup.show && (
         <div
-          className={`fixed top-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg shadow-lg text-white font-medium animate-fade ${
+          className={`fixed top-24 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg shadow-lg text-white font-medium animate-fade ${
             popup.type === "success"
               ? "bg-green-600"
               : popup.type === "error"
