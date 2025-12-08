@@ -3,8 +3,8 @@
     "dev": "vite"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^5.1.1",
-    "vite": "^7.2.6"
+    "@vitejs/plugin-react": "^5.1.2",
+    "vite": "^7.2.7"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.17",
@@ -14,6 +14,7 @@
     "react-dom": "^19.2.1",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.10.1",
+    "react-select": "^5.10.2",
     "tailwindcss": "^4.1.17"
   }
 }

@@ -9,7 +9,7 @@ export default function NavbarCompany() {
   const menuItems = [
     { icon: Home, label: 'Dashboard', active: true, path: '/CompanyMainPage' },
     { icon: User, label: 'Profile' },
-    { icon: Files, label: 'Job Postings', path: '/JobPostings' },
+    { icon: Files, label: 'Job Postings', path: '/JobPosting' },
     { icon: LogOut, label: 'Sign Out', path: '/' },
   ];
 
