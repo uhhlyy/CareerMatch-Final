@@ -15,7 +15,7 @@ export default function ViewApplicants() {
   useEffect(() => {
     const fetchApplicants = async () => {
       try {
-        const response = await fetch('http://localhost/CareerMatch/CareerMatchBackend/resume_api.php');
+        const response = await fetch('http://localhost/CareerMatch/CareerMatch-Final/CMBackend/resume_api.php');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -267,13 +267,13 @@ export default function ViewApplicants() {
 
   return (
     <>
-      <div className="min-h-screen w-full bg-gradient-to-br from-blue-100 to-blue-300 flex flex-col">
+      <div className="min-h-screen w-full bg-gradient-to-br from-blue-100 to-blue-300 flex flex-col overflow-x-hidden">
         <NavbarCompany />
         <div className="flex flex-col items-center w-full px-4 py-10">
           <p className="text-gray-800 font-medium mb-6">
             Swipe right to accept, left to decline.
           </p>
-          <div className="relative w-full max-w-xl h-[650px]">
+          <div className="relative w-full max-w-xl h-[650px] rounded-2xl bg-gradient-to-br from-blue-200 to-blue-400 shadow-lg flex items-center justify-center overflow-hidden">
             {applicants.length === 0 ? (
               <div className="text-center text-gray-700">Loading applicants...</div>
             ) : currentIndex >= applicants.length ? (
