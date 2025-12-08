@@ -20,7 +20,7 @@ const LoginSeeker = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost/CareerMatch/CareerMatch-Final/CMBackend/seeker_login.php", {
+      const response = await fetch("http://localhost/CareerMatch-Final/CMBackend/seeker_login.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email, password: formData.password })

@@ -20,7 +20,7 @@ const LoginCompany = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost/CareerMatch/CareerMatch-Final/CMBackend/employer_login.php", {
+      const response = await fetch("http://localhost/CareerMatch-Final/CMBackend/employer_login.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

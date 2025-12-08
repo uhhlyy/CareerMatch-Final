@@ -49,7 +49,7 @@ export default function JobPosting() {
       employmentLevel: formData.employmentLevel,
     };
     try {
-      const response = await fetch('http://localhost/CareerMatch/CareerMatch-Final/CMBackend/job_post.php', {
+      const response = await fetch('http://localhost/CareerMatch-Final/CMBackend/job_post.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(jobData),

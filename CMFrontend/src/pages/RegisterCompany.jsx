@@ -34,7 +34,7 @@ const RegisterCompany = () => {
 
     try {
       const response = await fetch(
-        "http://localhost/CareerMatch/CareerMatch-Final/CMBackend/employer_register.php",
+        "http://localhost/CareerMatch-Final/CMBackend/employer_register.php",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

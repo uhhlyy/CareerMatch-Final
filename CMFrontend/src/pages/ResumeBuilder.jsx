@@ -194,7 +194,7 @@ export default function ResumeBuilder() {
       ];
 
       const response = await fetch(
-        "http://localhost/CareerMatch/CareerMatch-Final/CMBackend/resume_api.php",
+        "http://localhost/CareerMatch-Final/CMBackend/resume_api.php",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

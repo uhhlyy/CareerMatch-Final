@@ -15,7 +15,7 @@ export default function ViewApplicants() {
   useEffect(() => {
     const fetchApplicants = async () => {
       try {
-        const response = await fetch('http://localhost/CareerMatch/CareerMatch-Final/CMBackend/resume_api.php');
+        const response = await fetch('http://localhost/CareerMatch-Final/CMBackend/resume_api.php');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

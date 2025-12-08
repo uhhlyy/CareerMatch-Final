@@ -23,7 +23,7 @@ export default function SeekerMainPage() {
   useEffect(() => {
     const loadJobs = async () => {
       try {
-        const response = await fetch('http://localhost/CareerMatch/CareerMatch-Final/CMBackend/get_jobs.php');
+        const response = await fetch('http://localhost/CareerMatch-Final/CMBackend/get_jobs.php');
         const data = await response.json();
         if (data.success) {
           setJobs(data.jobs);
