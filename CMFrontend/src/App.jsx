@@ -20,7 +20,7 @@ import NavbarCompany from './components/NavbarCompany'
 
 function AppContent() {
   const location = useLocation();
-  const hideNavbarRoutes = ['/roleselection', '/SeekerMainPage', '/ResumeBuilder', '/CompanyMainPage', '/jobposting'];
+  const hideNavbarRoutes = ['/roleselection', '/SeekerMainPage', '/ResumeBuilder', '/CompanyMainPage', '/JobPosting'];
 
   return (
     <>
@@ -35,7 +35,7 @@ function AppContent() {
         <Route path="/SeekerMainPage" element={<SeekerMainPage />} />
         <Route path="/ResumeBuilder" element={<ResumeBuilder />} />
         <Route path="/CompanyMainPage" element={<CompanyMainPage />} />
-        <Route path="/jobposting" element={<JobPosting />} />
+        <Route path="/JobPosting" element={<JobPosting />} />
       </Routes>
     </>
   );

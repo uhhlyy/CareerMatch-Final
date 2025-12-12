@@ -6,6 +6,11 @@ const SWIPE_THRESHOLD = 120;
 export default function ViewApplicants() {
   const [applicants, setApplicants] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [filterJobPref, setFilterJobPref] = useState("");
+  const [minExpYears, setMinExpYears] = useState("");
+  const [maxExpYears, setMaxExpYears] = useState("");
+  const [filterEducation, setFilterEducation] = useState(""); // New state for education filter
+  const [showFilters, setShowFilters] = useState(false);
 
   const startXRef = useRef(0);
   const currentXRef = useRef(0);
@@ -15,7 +20,7 @@ export default function ViewApplicants() {
   useEffect(() => {
     const fetchApplicants = async () => {
       try {
-        const response = await fetch('http://localhost/CareerMatch/CareerMatchBackend/resume_api.php');
+        const response = await fetch('http://localhost/CareerMatchFinalV2/CareerMatch-Final/CMBackend/resume_api.php');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -30,6 +35,27 @@ export default function ViewApplicants() {
 
     fetchApplicants();
   }, []);
+
+  // Helper to extract numeric years from experience string (e.g., "5 years" -> 5)
+  const extractExpYears = (expStr) => {
+    const match = expStr.match(/(\d+)/);
+    return match ? parseInt(match[1], 10) : 0;
+  };
+
+  // Filter applicants based on job preferences, experience years range, and education
+  const filteredApplicants = applicants.filter(app => {
+    const prefMatch = !filterJobPref.trim() || (Array.isArray(app.JobPreferences) ? app.JobPreferences : [app.JobPreferences || ""]).some(pref => pref.toLowerCase().includes(filterJobPref.toLowerCase()));
+    const expYears = extractExpYears(app.Experience || "");
+    const minMatch = !minExpYears || expYears >= parseInt(minExpYears);
+    const maxMatch = !maxExpYears || expYears <= parseInt(maxExpYears);
+    const educationMatch = !filterEducation || app.Education === filterEducation; // Exact match for education
+    return prefMatch && minMatch && maxMatch && educationMatch;
+  });
+
+  // Reset currentIndex when filters change
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [filterJobPref, minExpYears, maxExpYears, filterEducation]); // Added filterEducation
 
   const updateCardPositions = () => {
     const cards = document.querySelectorAll(".swipe-card");
@@ -66,7 +92,7 @@ export default function ViewApplicants() {
     });
   };
 
-  useEffect(updateCardPositions, [currentIndex, applicants]);
+  useEffect(updateCardPositions, [currentIndex, filteredApplicants]);
 
   /* === DRAG HANDLERS === */
   const handleMove = (clientX) => {
@@ -177,13 +203,13 @@ export default function ViewApplicants() {
   };
 
   const renderCard = (applicant, index) => {
-    const initials = applicant.fullName
-      ? applicant.fullName.split(" ").map((c) => c[0]).join("")
+    const initials = applicant.FullName  // Fixed: Use 'FullName'
+      ? applicant.FullName.split(" ").map((c) => c[0]).join("")
       : "NA";
 
     return (
       <div
-        key={applicant.id}
+        key={applicant.ID}  // Fixed: Use 'ID'
         data-index={index}
         onPointerDown={(e) => handlePointerDown(e, index)}
         onTouchStart={(e) => handleTouchStart(e, index)}
@@ -207,31 +233,32 @@ export default function ViewApplicants() {
         </div>
 
         <div className="text-2xl font-bold text-blue-900 break-words">
-          {applicant.fullName || "N/A"}
+          {applicant.FullName || "N/A"}  
         </div>
-        <p className="text-gray-600 mb-4 break-words">{applicant.email || "N/A"}</p>
+        <p className="text-gray-600 mb-4 break-words">{applicant.Email || "N/A"}</p> 
 
         {/* Details */}
         <div className="flex flex-col gap-3 text-left">
           {[
-            ["👤", applicant.aboutMe || "N/A"],
-            ["🎂", applicant.birthday || "N/A"],
-            ["🏙️", applicant.city || "N/A"],
-            ["🎓", applicant.education || "N/A"],
-            ["⚧", applicant.gender || "N/A"],
-            ["💼", Array.isArray(applicant.jobPreferences) ? applicant.jobPreferences.join(", ") : (applicant.jobPreferences || "N/A")],
-            ["🗣️", applicant.languages || "N/A"],
-            ["💍", applicant.maritalStatus || "N/A"],
-            ["📞", applicant.phoneNumber || "N/A"],
-            ["🛠️", applicant.skills || "N/A"],
-            ["🏢", applicant.workExperience || "N/A"],
-            ["⏰", "N/A"],
-          ].map(([icon, value], i) => (
+            ["👤", "About Me", applicant.AboutMe || "N/A"],
+            ["🎂", "Birthday", applicant.Birthday || "N/A"],
+            ["🏙️", "City", applicant.City || "N/A"],
+            ["🎓", "Education", applicant.Education || "N/A"],
+            ["⚧", "Gender", applicant.Gender || "N/A"],
+            ["💼", "Job Preferences", Array.isArray(applicant.JobPreferences) ? applicant.JobPreferences.join(", ") : (applicant.JobPreferences || "N/A")],
+            ["🗣️", "Languages", applicant.Languages || "N/A"],
+            ["💍", "Marital Status", applicant.MaritalStatus || "N/A"],
+            ["📞", "Phone Number", applicant.PhoneNumber || "N/A"],
+            ["🛠️", "Skills", applicant.Skills || "N/A"],
+            ["🏢", "Experience", applicant.Experience || "N/A"],
+            ["⏰", "Summary", applicant.Summary || "N/A"],  // Assuming 'Summary' from DB
+          ].map(([icon, label, value], i) => (
             <div
               key={i}
               className="flex gap-2 items-start text-gray-800 break-words"
             >
               <span>{icon}</span>
+              <span className="font-medium">{label}:</span>  {/* Show label always */}
               <span>{value}</span>
             </div>
           ))}
@@ -247,7 +274,7 @@ export default function ViewApplicants() {
           bg-white/70 backdrop-blur-md rotate-6
         "
         >
-          APPLY
+          ACCEPT
         </div>
 
         <div
@@ -273,17 +300,29 @@ export default function ViewApplicants() {
           <p className="text-gray-800 font-medium mb-6">
             Swipe right to accept, left to decline.
           </p>
+
+          {/* Filter Button */}
+          <div className="flex justify-center mb-6">
+            <button
+              onClick={() => setShowFilters(true)}
+              className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-lg hover:bg-blue-700 transition"
+            >
+              Open Filters
+            </button>
+          </div>
+
           <div className="relative w-full max-w-xl h-[650px]">
             {applicants.length === 0 ? (
               <div className="text-center text-gray-700">Loading applicants...</div>
-            ) : currentIndex >= applicants.length ? (
+            ) : currentIndex >= filteredApplicants.length ? (
               <div className="text-center text-gray-700 text-xl font-semibold">
                 No more applicants to review!
               </div>
             ) : (
-              applicants.map((app, i) => renderCard(app, i))
+              filteredApplicants.map((app, i) => renderCard(app, i))
             )}
           </div>
+
           {/* Action buttons */}
           <div className="flex gap-10 mt-8">
             <button
@@ -301,9 +340,98 @@ export default function ViewApplicants() {
           </div>
         </div>
       </div>
+
       <footer className="bg-gray-900 p-6 text-gray-400 text-center">
         CareerMatch © 2025 — All rights reserved.
       </footer>
+
+      {/* Filter Popup */}
+      {showFilters && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div
+            className="bg-white rounded-lg shadow-lg p-6 w-96 max-w-full transition-all duration-500 ease-out"
+            style={{
+              transform: showFilters ? 'translateY(0)' : 'translateY(20px)',
+              opacity: showFilters ? 1 : 0,
+            }}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Filters</h2>
+              <button
+                onClick={() => setShowFilters(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <label htmlFor="jobPrefFilter" className="block text-gray-700 font-medium mb-2">
+                Job Preferences:
+              </label>
+              <input
+                id="jobPrefFilter"
+                type="text"
+                value={filterJobPref}
+                onChange={(e) => setFilterJobPref(e.target.value)}
+                placeholder="e.g., Chef, Flight Attendant"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-gray-700 font-medium mb-2">
+                Experience Years Range:
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  value={minExpYears}
+                  onChange={(e) => setMinExpYears(e.target.value)}
+                  placeholder="Min"
+                  className="w-1/2 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <input
+                  type="number"
+                  value={maxExpYears}
+                  onChange={(e) => setMaxExpYears(e.target.value)}
+                  placeholder="Max"
+                  className="w-1/2 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label htmlFor="educationFilter" className="block text-gray-700 font-medium mb-2">
+                Education Level:
+              </label>
+              <select
+                id="educationFilter"
+                value={filterEducation}
+                onChange={(e) => setFilterEducation(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Education Levels</option>
+                <option value="High School Graduate">High School Graduate</option>
+                <option value="College Undergraduate">College Undergraduate</option>
+                <option value="Bachelor’s Degree">Bachelor’s Degree</option>
+                <option value="Master’s Degree">Master’s Degree</option>
+                <option value="Vocational / TESDA">Vocational / TESDA</option>
+                <option value="Bootcamp Graduate">Bootcamp Graduate</option>
+              </select>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowFilters(false)}
+                className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
+              >
+                Apply Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
