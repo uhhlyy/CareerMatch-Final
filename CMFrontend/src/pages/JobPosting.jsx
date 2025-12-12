@@ -1,15 +1,5 @@
 import React, { useState } from "react";
 import NavbarCompany from "../components/NavbarCompany";
-import Select from "react-select"; // Add this import for the dropdown
-
-// Define jobOptions here (or import from a shared file to avoid duplication)
-const jobOptions = [
-  { value: 'Software Engineer', label: 'Software Engineer' },
-  { value: 'Data Scientist', label: 'Data Scientist' },
-  { value: 'Web Developer', label: 'Web Developer' },
-  { value: 'Mobile App Developer', label: 'Mobile App Developer' },
-  { value: 'UI/UX Designer', label: 'UI/UX Designer' },
-];
 
 export default function JobPosting() {
   console.log("JobPost component is rendering");  // For debugging
@@ -29,11 +19,6 @@ export default function JobPosting() {
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.id]: e.target.value });
 
-  // New handler for the jobTitle select
-  const handleJobTitleChange = (selectedOption) => {
-    setFormData({ ...formData, jobTitle: selectedOption ? selectedOption.value : "" });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Submitting job post", formData);
@@ -49,7 +34,7 @@ export default function JobPosting() {
       employmentLevel: formData.employmentLevel,
     };
     try {
-      const response = await fetch('http://localhost/CareerMatch-Final/CMBackend/job_post.php', {
+      const response = await fetch('http://localhost/CareerMatchFinal/CMBackend/job_post.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(jobData),
@@ -119,27 +104,38 @@ export default function JobPosting() {
             onSubmit={handleSubmit}
             className="grid grid-cols-1 md:grid-cols-2 gap-7 w-full"
           >
-            {/* Job Title Select */}
+            {/* Job Title Input (now regular input with floating label) */}
             <div className="relative">
-              <label className="text-sm font-semibold text-gray-700 mb-1 block">
+              <input
+                id="jobTitle"
+                value={formData.jobTitle}
+                onChange={handleChange}
+                required
+                className="
+                  w-full px-4 py-3 rounded-xl bg-white/80 
+                  text-gray-900 shadow-md outline-none border border-white/40 
+                  focus:ring-2 focus:ring-blue-500 peer
+                "
+                placeholder=" "
+              />
+              <label
+                htmlFor="jobTitle"
+                className="
+                  absolute left-4 top-3 text-gray-600 transition-all pointer-events-none
+                  peer-placeholder-shown:top-3 peer-placeholder-shown:text-base
+                  peer-focus:top-[-10px] peer-focus:text-sm peer-focus:text-blue-700 bg-white px-1
+                  peer-not-placeholder-shown:top-[-10px] peer-not-placeholder-shown:text-sm peer-not-placeholder-shown:text-blue-700
+                "
+              >
                 Job Title
               </label>
-              <Select
-                id="jobTitle"
-                options={jobOptions}
-                value={jobOptions.find(option => option.value === formData.jobTitle)}
-                onChange={handleJobTitleChange}
-                placeholder="Select job title"
-                className="w-full"
-                required
-              />
             </div>
 
             {/* Other FLOATING LABEL INPUTS */}
             {[
               ["companyName", "Company Name"],
               ["location", "Location"],
-              ["salary", "Salary Range"],
+              ["salary", "Salary Range (in PHP)"],
               ["degree", "Required Degree"],
               ["experience", "Experience"],
             ].map(([id, label]) => (
