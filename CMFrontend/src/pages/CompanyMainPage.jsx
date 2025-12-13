@@ -3,50 +3,118 @@ import NavbarCompany from "../components/NavbarCompany";
 
 const SWIPE_THRESHOLD = 120;
 
-export default function ViewApplicants() {
+export default function CompanyMainPage() {
   const [applicants, setApplicants] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-
+  const [employerId, setEmployerId] = useState(null);
   const [filterJobPref, setFilterJobPref] = useState("");
   const [minExpYears, setMinExpYears] = useState("");
   const [maxExpYears, setMaxExpYears] = useState("");
   const [filterEducation, setFilterEducation] = useState("");
-
+  const [minSalary, setMinSalary] = useState("");
+  const [maxSalary, setMaxSalary] = useState("");
+  const [selectedJobTypes, setSelectedJobTypes] = useState([]);
+  const [filterEducationLevel, setFilterEducationLevel] = useState("");
   const [showFilters, setShowFilters] = useState(false);
-
   const startXRef = useRef(0);
   const currentXRef = useRef(0);
   const draggingRef = useRef(false);
   const activeCardRef = useRef(null);
 
+  // Function to update applicant status on backend
+  const updateApplicantStatus = async (applicantId, employerId, newDecision) => {
+    const payload = { 
+      applicant_id: applicantId, 
+      employer_id: employerId,   
+      decision: newDecision      
+    };
+    
+    console.log('Sending payload:', payload); 
+    try {
+      const response = await fetch('http://localhost/CareerMatch-Final/CMBackend/update_applicant_status.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Response status:', response.status, 'Body:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const result = await response.json();
+      console.log('Update Result:', result);
+    } catch (error) {
+      console.error('Error updating applicant status:', error);
+    }
+  };
+
   // Fetch applicants
   useEffect(() => {
     const fetchApplicants = async () => {
       try {
-        const response = await fetch(
-          "http://localhost/CareerMatch-Final/CMBackend/resume_api.php"
-        );
-        if (!response.ok)
-          throw new Error(`HTTP error! status: ${response.status}`);
+        const response = await fetch('http://localhost/CareerMatch-Final/CMBackend/get_seeker_application.php');
+        
+        if (!response.ok) {
+           throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
         const data = await response.json();
-        setApplicants(data);
+
+        if (Array.isArray(data)) {
+          const processedData = data.map(app => {
+            let prefs = app.JobPreferences;
+            if (typeof prefs === "string") {
+              try {
+                prefs = JSON.parse(prefs);
+              } catch (e) {
+                prefs = prefs.split(",").map(p => p.trim());
+              }
+            }
+            return { ...app, JobPreferences: prefs };
+          });
+          setApplicants(processedData);
+        }
       } catch (error) {
-        console.error("Error fetching applicants:", error);
+        console.error("Fetch error:", error);
+        setApplicants([]);
       }
     };
-
     fetchApplicants();
   }, []);
 
+  // Employer Auth logic
+  useEffect(() => {
+    const storedEmployerId = localStorage.getItem('employer_id') || localStorage.getItem('employerID');
+    if (!storedEmployerId) {
+      alert('Please log in first.');
+      window.location.href = '/login'; 
+    } else {
+      setEmployerId(storedEmployerId);
+    }
+  }, []);
+
+  // Reset index when filters change
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [filterJobPref, minExpYears, maxExpYears, filterEducationLevel, selectedJobTypes]);
+
   // Extract numeric experience
   const extractExpYears = (expStr) => {
-    const match = expStr?.match?.(/(\d+)/);
+    const match = expStr?.toString().match(/(\d+)/);
     return match ? parseInt(match[1], 10) : 0;
   };
 
+  // Handle job type checkbox changes
+  const handleJobTypeChange = (type) => {
+    setSelectedJobTypes((prev) =>
+      prev.includes(type)
+        ? prev.filter((t) => t !== type)
+        : [...prev, type]
+    );
+  };
+
   // Apply filters
-  const filteredApplicants = applicants.filter((app) => {
+  const filteredApplicants = (Array.isArray(applicants) ? applicants : []).filter((app) => {
     const prefMatch =
       !filterJobPref.trim() ||
       (Array.isArray(app.JobPreferences)
@@ -61,15 +129,16 @@ export default function ViewApplicants() {
     const maxMatch = !maxExpYears || expYears <= parseInt(maxExpYears);
 
     const educationMatch =
-      !filterEducation || app.Education === filterEducation;
+      !filterEducationLevel || app.Education === filterEducationLevel;
 
-    return prefMatch && minMatch && maxMatch && educationMatch;
+    const jobTypeMatch =
+      selectedJobTypes.length === 0 ||
+      (Array.isArray(app.JobTypes)
+        ? app.JobTypes.some((type) => selectedJobTypes.includes(type))
+        : selectedJobTypes.includes(app.JobTypes));
+
+    return prefMatch && minMatch && maxMatch && educationMatch && jobTypeMatch;
   });
-
-  // Reset index when filters are changed
-  useEffect(() => {
-    setCurrentIndex(0);
-  }, [filterJobPref, minExpYears, maxExpYears, filterEducation]);
 
   // Update visible card stack positions
   const updateCardPositions = () => {
@@ -133,36 +202,38 @@ export default function ViewApplicants() {
   const endSwipe = () => {
     if (!draggingRef.current) return;
     draggingRef.current = false;
-
     const card = activeCardRef.current;
     if (!card) return;
-
     const diff = currentXRef.current - startXRef.current;
+    const currentApp = filteredApplicants[currentIndex]; 
+
     card.style.transition = "transform .35s ease, opacity .35s ease";
+
+    // Detect ID vs id
+    const targetId = currentApp.ID || currentApp.id;
 
     if (diff > SWIPE_THRESHOLD) {
       card.style.transform = "translateX(1200px) rotate(30deg)";
       card.style.opacity = 0;
+      updateApplicantStatus(targetId, employerId, "accepted"); 
       setTimeout(() => setCurrentIndex((p) => p + 1), 300);
     } else if (diff < -SWIPE_THRESHOLD) {
       card.style.transform = "translateX(-1200px) rotate(-30deg)";
       card.style.opacity = 0;
+      updateApplicantStatus(targetId, employerId, "denied"); 
       setTimeout(() => setCurrentIndex((p) => p + 1), 300);
     } else {
       card.style.transform = "translateX(0) rotate(0)";
     }
-
     setTimeout(() => {
       if (activeCardRef.current) activeCardRef.current.style.transition = "";
       activeCardRef.current = null;
     }, 350);
   };
 
-  // Pointer + touch handlers
   const handlePointerDown = (e, index) => {
     if (index !== currentIndex) return;
     draggingRef.current = true;
-
     activeCardRef.current = e.currentTarget;
     startXRef.current = e.clientX;
     currentXRef.current = e.clientX;
@@ -182,7 +253,6 @@ export default function ViewApplicants() {
     if (index !== currentIndex) return;
     draggingRef.current = true;
     activeCardRef.current = e.currentTarget;
-
     startXRef.current = e.touches[0].clientX;
     currentXRef.current = e.touches[0].clientX;
   };
@@ -190,10 +260,11 @@ export default function ViewApplicants() {
   const handleTouchMove = (e) => draggingRef.current && handleMove(e.touches[0].clientX);
   const handleTouchEnd = () => endSwipe();
 
-  // Buttons API
   const animateSwipe = (dir) => {
     const card = document.querySelector(`[data-index="${currentIndex}"]`);
     if (!card) return;
+    const currentApp = filteredApplicants[currentIndex];
+    const targetId = currentApp.ID || currentApp.id;
 
     card.style.transition = "transform .35s ease, opacity .35s ease";
     card.style.transform =
@@ -201,14 +272,11 @@ export default function ViewApplicants() {
         ? "translateX(1200px) rotate(30deg)"
         : "translateX(-1200px) rotate(-30deg)";
     card.style.opacity = 0;
-
+    
+    updateApplicantStatus(targetId, employerId, dir === "right" ? "accepted" : "denied");
     setTimeout(() => setCurrentIndex((p) => p + 1), 300);
   };
 
-  const swipeLeft = () => animateSwipe("left");
-  const swipeRight = () => animateSwipe("right");
-
-  // Render card
   const renderCard = (app, index) => {
     const initials = app.FullName
       ? app.FullName.split(" ").map((c) => c[0]).join("")
@@ -216,7 +284,7 @@ export default function ViewApplicants() {
 
     return (
       <div
-        key={app.ID}
+        key={app.ID || app.id}
         data-index={index}
         onPointerDown={(e) => handlePointerDown(e, index)}
         onTouchStart={(e) => handleTouchStart(e, index)}
@@ -224,14 +292,26 @@ export default function ViewApplicants() {
         onTouchEnd={handleTouchEnd}
         className="swipe-card absolute inset-0 bg-white shadow-xl border rounded-2xl p-6 md:p-8 overflow-y-auto transition-all duration-300"
       >
-        <div className="w-full h-40 md:h-48 rounded-xl bg-linear-to-br from-blue-300 to-blue-900 flex items-center justify-center text-white text-3xl font-bold mb-6">
-          {initials}
+        <div className="w-40 h-40 md:w-48 md:h-48 aspect-square rounded-full bg-gradient-to-br from-blue-300 to-blue-900 flex items-center justify-center text-white text-3xl font-bold mb-6 overflow-hidden mx-auto">
+          {app.Photo ? (
+            <img
+              src={`http://localhost/CareerMatch-Final/CMBackend/${app.Photo}`}
+              alt={`${app.FullName}'s Photo`}
+              className="w-full h-full object-cover rounded-full"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.parentElement.innerHTML = initials;
+              }}
+            />
+          ) : (
+            initials
+          )}
         </div>
 
-        <div className="text-2xl font-bold text-blue-900 wrap-break-word">
+        <div className="text-2xl font-bold text-blue-900 text-center">
           {app.FullName || "N/A"}
         </div>
-        <p className="text-gray-600 mb-4 wrap-break-word">{app.Email || "N/A"}</p>
+        <p className="text-gray-600 mb-4 text-center">{app.Email || "N/A"}</p>
 
         <div className="flex flex-col gap-3 text-left">
           {[
@@ -252,15 +332,14 @@ export default function ViewApplicants() {
             ["🏢", "Experience", app.Experience],
             ["⏰", "Summary", app.Summary],
           ].map(([icon, label, value], i) => (
-            <div key={i} className="flex gap-2 items-start text-gray-800 wrap-break-word">
+            <div key={i} className="flex gap-2 items-start text-gray-800">
               <span>{icon}</span>
               <span className="font-medium">{label}:</span>
-              <span>{value || "N/A"}</span>
+              <span className="break-words">{value || "N/A"}</span>
             </div>
           ))}
         </div>
 
-        {/* Accept/Decline Indicators */}
         <div className="indicator-accept absolute top-10 right-6 opacity-0 pointer-events-none px-6 py-3 rounded-xl border-4 text-green-500 border-green-500 font-extrabold text-3xl bg-white/70 backdrop-blur-md rotate-6">
           ACCEPT
         </div>
@@ -272,138 +351,112 @@ export default function ViewApplicants() {
   };
 
   return (
-    <>
-      <div className="min-h-screen w-full bg-linear-to-br from-blue-100 to-blue-300 flex flex-col overflow-x-hidden">
-        <NavbarCompany />
+    <div className="min-h-screen bg-gradient-to-br from-blue-300 to-blue-900 flex">
+      <NavbarCompany />
 
-        <div className="flex flex-col items-center w-full px-4 py-10">
-          <p className="text-gray-800 font-medium mb-6">
-            Swipe right to accept, left to decline.
-          </p>
+      <div className="flex-1 flex flex-col min-h-screen">
+        <div className="flex justify-center items-center py-10">
+          <div className="w-full max-w-3xl px-6">
+            <p className="text-center text-white text-lg mb-6">
+              Swipe right to accept, left to decline.
+            </p>
 
-          <button
-            onClick={() => setShowFilters(true)}
-            className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-lg hover:bg-blue-700 transition mb-6"
-          >
-            Open Filters
-          </button>
-
-          <div className="relative w-full max-w-xl h-[650px] rounded-2xl bg-linear-to-br from-blue-200 to-blue-400 shadow-lg overflow-hidden">
-            {applicants.length === 0 ? (
-              <div className="text-center text-gray-700">Loading applicants...</div>
-            ) : currentIndex >= filteredApplicants.length ? (
-              <div className="text-center text-gray-700 text-xl font-semibold">
-                No more applicants to review!
-              </div>
-            ) : (
-              filteredApplicants.map((app, i) => renderCard(app, i))
-            )}
-          </div>
-
-          <div className="flex gap-10 mt-8">
-            <button
-              onClick={swipeLeft}
-              className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-red-500 text-white text-2xl shadow-lg hover:scale-110 transition"
-            >
-              ✕
-            </button>
-
-            <button
-              onClick={swipeRight}
-              className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-green-500 text-white text-2xl shadow-lg hover:scale-110 transition"
-            >
-              ✓
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <footer className="bg-gray-900 p-6 text-gray-400 text-center">
-        CareerMatch © 2025 — All rights reserved.
-      </footer>
-
-      {/* FILTER MODAL */}
-      {showFilters && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-96 max-w-full transition-all">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-800">Filters</h2>
+            <div className="flex justify-center mb-6">
               <button
-                onClick={() => setShowFilters(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                onClick={() => setShowFilters(true)}
+                className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-lg hover:bg-blue-700 transition"
               >
-                ×
+                Open Filters
               </button>
             </div>
 
-            {/* Job Pref */}
+            <div className="relative h-[750px] mb-10">
+              {applicants.length === 0 ? (
+                <p className="text-white text-center">Loading applicants...</p>
+              ) : currentIndex >= filteredApplicants.length ? (
+                <div className="text-center p-10 bg-white/20 rounded-2xl backdrop-blur-md text-white">
+                    <h2 className="text-2xl font-bold">No more applicants!</h2>
+                    <p>Try clearing your filters to see more results.</p>
+                </div>
+              ) : (
+                filteredApplicants.map((app, idx) => renderCard(app, idx))
+              )}
+            </div>
+
+            <div className="flex justify-center gap-16">
+              <button
+                onClick={() => animateSwipe("left")}
+                className="w-16 h-16 rounded-full bg-red-500 text-white text-3xl shadow-lg hover:scale-110 transition"
+              >
+                ✕
+              </button>
+
+              <button
+                onClick={() => animateSwipe("right")}
+                className="w-16 h-16 rounded-full bg-green-500 text-white text-3xl shadow-lg hover:scale-110 transition"
+              >
+                ✓
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <footer className="bg-gray-900 p-6 text-gray-400 text-center mt-auto">
+          CareerMatch © 2025 — All rights reserved.
+        </footer>
+      </div>
+
+      {showFilters && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-96 max-w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Filters</h2>
+              <button onClick={() => setShowFilters(false)} className="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+            </div>
+
             <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">
-                Job Preference:
-              </label>
+              <label className="block text-gray-700 font-medium mb-2">Job Preference:</label>
               <input
                 type="text"
                 value={filterJobPref}
                 onChange={(e) => setFilterJobPref(e.target.value)}
                 placeholder="e.g., Chef"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
-            {/* Experience */}
             <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">
-                Experience (Years Range):
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  placeholder="Min"
-                  value={minExpYears}
-                  onChange={(e) => setMinExpYears(e.target.value)}
-                  className="w-1/2 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                  type="number"
-                  placeholder="Max"
-                  value={maxExpYears}
-                  onChange={(e) => setMaxExpYears(e.target.value)}
-                  className="w-1/2 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            {/* Education */}
-            <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">
-                Education Level:
-              </label>
+              <label className="block text-gray-700 font-medium mb-2">Education Level:</label>
               <select
-                value={filterEducation}
-                onChange={(e) => setFilterEducation(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                value={filterEducationLevel}
+                onChange={(e) => setFilterEducationLevel(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">All Levels</option>
-                <option value="High School Graduate">High School Graduate</option>
-                <option value="College Undergraduate">College Undergraduate</option>
-                <option value="Bachelor’s Degree">Bachelor’s Degree</option>
-                <option value="Master’s Degree">Master’s Degree</option>
-                <option value="Vocational / TESDA">Vocational / TESDA</option>
-                <option value="Bootcamp Graduate">Bootcamp Graduate</option>
+                <option>High School Graduate</option>
+                <option>College Undergraduate</option>
+                <option>Bachelor’s Degree</option>
+                <option>Master’s Degree</option>
               </select>
             </div>
 
-            <div className="flex justify-end">
-              <button
-                onClick={() => setShowFilters(false)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-              >
-                Apply Filters
-              </button>
+            <div className="mb-4">
+                <label className="block text-gray-700 font-medium mb-2">Exp (Years):</label>
+                <div className="flex gap-2">
+                    <input type="number" placeholder="Min" value={minExpYears} onChange={(e) => setMinExpYears(e.target.value)} className="w-1/2 p-2 border rounded"/>
+                    <input type="number" placeholder="Max" value={maxExpYears} onChange={(e) => setMaxExpYears(e.target.value)} className="w-1/2 p-2 border rounded"/>
+                </div>
             </div>
+
+            <button
+              onClick={() => setShowFilters(false)}
+              className="w-full py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
+            >
+              Apply Filters
+            </button>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

@@ -29,10 +29,16 @@ const LoginSeeker = () => {
       const data = await response.json();
 
       if (data.success) {
+        // We store everything from the PHP response here
+        localStorage.setItem('seeker_id', data.seekerID);
+        localStorage.setItem('seekerEmail', formData.email);
+        localStorage.setItem('authToken', data.token);
+
         showPopup(data.message, "success");
+        
         setTimeout(() => {
           setFormData({ email: "", password: "" });
-          navigate("/SeekerMainPage");
+          navigate("/SeekerMainPage"); 
         }, 1500);
       } else {
         showPopup(data.message, "error");
@@ -60,7 +66,6 @@ const LoginSeeker = () => {
         </h3>
 
         <form onSubmit={handleSubmit} className="mt-6">
-          {/* Email */}
           <div className="mb-4">
             <input
               type="email"
@@ -73,7 +78,6 @@ const LoginSeeker = () => {
             />
           </div>
 
-          {/* Password */}
           <div className="mb-4">
             <input
               type="password"
@@ -92,7 +96,6 @@ const LoginSeeker = () => {
             </a>
           </div>
 
-          {/* Login button */}
           <button
             type="submit"
             className="w-full mt-4 bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg font-semibold"
@@ -100,14 +103,12 @@ const LoginSeeker = () => {
             Login
           </button>
 
-          {/* Divider */}
           <div className="flex items-center my-6">
             <div className="flex-1 h-px bg-gray-300"></div>
             <span className="px-2 text-gray-600">Or Continue With</span>
             <div className="flex-1 h-px bg-gray-300"></div>
           </div>
 
-          {/* Social Login */}
           <div className="flex gap-4">
             <button
               type="button"
@@ -126,7 +127,6 @@ const LoginSeeker = () => {
             </button>
           </div>
 
-          {/* Register Redirect */}
           <p className="mt-6 text-center text-gray-700">
             Don’t have an account?{" "}
             <a href="/RegisterSeeker" className="text-blue-700 font-semibold">
@@ -136,7 +136,6 @@ const LoginSeeker = () => {
         </form>
       </div>
 
-      {/* Popup Notification */}
       {popup.show && (
         <div
           className={`fixed top-24 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg shadow-lg text-white font-medium animate-fade ${

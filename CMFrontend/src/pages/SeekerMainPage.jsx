@@ -10,6 +10,7 @@ export default function SeekerMainPage() {
   const [minSalary, setMinSalary] = useState("");
   const [maxSalary, setMaxSalary] = useState("");
   const [selectedJobTypes, setSelectedJobTypes] = useState([]);
+  const [filterEducationLevel, setFilterEducationLevel] = useState(""); // New filter
   const [showFilters, setShowFilters] = useState(false);
 
   // Swipe refs
@@ -22,7 +23,7 @@ export default function SeekerMainPage() {
   useEffect(() => {
     const loadJobs = async () => {
       try {
-  const response = await fetch('http://localhost/CareerMatch-Final/CMBackend/get_jobs.php');
+        const response = await fetch('http://localhost/CareerMatch-Final/CMBackend/get_jobs.php');
         const data = await response.json();
         if (data.success) {
           setJobs(data.jobs);
@@ -43,20 +44,21 @@ export default function SeekerMainPage() {
     return match ? parseFloat(match[1].replace(/,/g, '')) : 0;
   };
 
-  // Filter jobs based on job preferences, salary range, and job types
+  // Filter jobs based on job preferences, salary range, job types, and education level
   const filteredJobs = jobs.filter(job => {
     const prefMatch = !filterJobPref || job.title.toLowerCase().includes(filterJobPref.toLowerCase());
     const jobSalary = extractSalaryNumber(job.salary || "");
     const minMatch = !minSalary || jobSalary >= parseFloat(minSalary);
     const maxMatch = !maxSalary || jobSalary <= parseFloat(maxSalary);
     const typeMatch = selectedJobTypes.length === 0 || selectedJobTypes.includes(job.type);
-    return prefMatch && minMatch && maxMatch && typeMatch;
+    const educationMatch = !filterEducationLevel || job.educationLevel === filterEducationLevel; // New filter
+    return prefMatch && minMatch && maxMatch && typeMatch && educationMatch;
   });
 
   // Reset currentIndex when filters change
   useEffect(() => {
     setCurrentIndex(0);
-  }, [filterJobPref, minSalary, maxSalary, selectedJobTypes]);
+  }, [filterJobPref, minSalary, maxSalary, selectedJobTypes, filterEducationLevel]); // Added new filter
 
   // Update card stack visual layout
   useEffect(() => {
@@ -210,9 +212,9 @@ export default function SeekerMainPage() {
 
   // Render job card
   const renderCard = (job, index) => {
-    const logoHTML = job?.logo
-      ? `<img src="${job.logo}" class="w-full h-full object-cover rounded-xl" />`
-      : job.company?.substring(0, 2).toUpperCase() || "CM";
+    const initials = job.company
+      ? job.company.split(" ").map((c) => c[0]).join("").toUpperCase()
+      : "CM";
 
     return (
       <div
@@ -221,11 +223,22 @@ export default function SeekerMainPage() {
         onPointerDown={(e) => handlePointerDown(e, index)}
         className="job-card bg-white rounded-2xl shadow-xl border p-8 cursor-grab"
       >
-        {/* Logo */}
-        <div
-          className="w-full h-52 rounded-xl bg-linear-to-br from-blue-300 to-blue-900 flex items-center justify-center text-white text-3xl font-bold shadow-md overflow-hidden mb-5"
-          dangerouslySetInnerHTML={{ __html: logoHTML }}
-        />
+        {/* Photo or Initials Placeholder */}
+        <div className="w-full h-52 rounded-xl bg-linear-to-br from-blue-300 to-blue-900 flex items-center justify-center text-white text-3xl font-bold shadow-md overflow-hidden mb-5">
+          {job.Photo ? (
+            <img
+              src={`http://localhost/CareerMatch-Final/CMBackend/${job.Photo}`}
+              alt={`${job.company} Logo`}
+              className="w-full h-full object-cover rounded-xl"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.parentElement.innerHTML = initials; // Fallback to initials on error
+              }}
+            />
+          ) : (
+            initials
+          )}
+        </div>
 
         <div className="text-2xl font-bold text-gray-800">{job.title}</div>
         <div className="text-gray-500 text-sm mb-4">{job.company}</div>
@@ -236,7 +249,6 @@ export default function SeekerMainPage() {
           <p>🎓 {job.degree || "Any"}</p>
           <p>🕒 {job.experience || "Not Specified"}</p>
           <p>⚡ {job.employmentLevel || "N/A"}</p>
-       
         </div>
 
         <div className="text-xl font-bold text-blue-600 mt-3">
@@ -389,6 +401,26 @@ export default function SeekerMainPage() {
                   </label>
                 ))}
               </div>
+            </div>
+
+            {/* New Education Level Filter */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-medium mb-2">
+                Required Education Level:
+              </label>
+              <select
+                value={filterEducationLevel}
+                onChange={(e) => setFilterEducationLevel(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Levels</option>
+                <option>High School Graduate</option>
+                <option>College Undergraduate</option>
+                <option>Bachelor’s Degree</option>
+                <option>Master’s Degree</option>
+                <option>Vocational / TESDA</option>
+                <option>Bootcamp Graduate</option>
+              </select>
             </div>
 
             <div className="flex justify-end">

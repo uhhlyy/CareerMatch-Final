@@ -20,6 +20,9 @@ const LoginCompany = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // 1. CRITICAL: Clear all old Seeker data (like seeker_id) before logging in as Employer
+      localStorage.clear();
+
       const response = await fetch("http://localhost/CareerMatch-Final/CMBackend/employer_login.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -32,11 +35,28 @@ const LoginCompany = () => {
       const data = await response.json();
 
       if (data.success) {
-        showPopup(data.message, "success");
-        setTimeout(() => {
-          setFormData({ email: "", password: "" });
-          navigate("/CompanyMainPage");
-        }, 1500);
+        // 2. Store using the key 'employer_id' specifically
+        // We use data.employer_id or data.id depending on what your PHP returns
+        const finalID = data.employer_id || data.id;
+
+        if (finalID) {
+          localStorage.setItem('employer_id', finalID);
+          localStorage.setItem('role', 'employer');
+          
+          if (data.token) {
+            localStorage.setItem('authToken', data.token);
+          }
+
+          showPopup(data.message, "success");
+          setTimeout(() => {
+            setFormData({ email: "", password: "" });
+            // 3. Redirect to the Employer Dashboard
+            navigate("/CompanyMainPage");
+          }, 1500);
+        } else {
+          showPopup("Error: ID not received from server", "error");
+          console.error("Backend response missing ID:", data);
+        }
       } else {
         showPopup(data.message, "error");
       }
@@ -52,14 +72,14 @@ const LoginCompany = () => {
   return (
     <div
       className="min-h-screen w-full bg-cover bg-center flex flex-col items-center justify-center px-4"
-      style={{ backgroundImage: `url(${backgroundImg})` }}  
+      style={{ backgroundImage: `url(${backgroundImg})` }}
     >
       <div className="bg-white/70 backdrop-blur-md shadow-xl rounded-xl p-8 w-full max-w-md mt-10">
         <h2 className="text-2xl font-bold text-center text-blue-900">
           Welcome to CareerMatch
         </h2>
         <h3 className="text-xl mt-2 font-semibold text-center text-gray-700">
-          Login
+          Company Login
         </h3>
 
         <form onSubmit={handleSubmit} className="mt-6">
@@ -67,7 +87,7 @@ const LoginCompany = () => {
             <input
               type="email"
               name="email"
-              placeholder="Email"
+              placeholder="Company Email"
               value={formData.email}
               onChange={handleChange}
               required
@@ -89,15 +109,30 @@ const LoginCompany = () => {
 
           <button
             type="submit"
-            className="w-full mt-4 bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg font-semibold"
+            className="w-full mt-4 bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg font-semibold transition"
           >
-            Login
+            Login as Employer
           </button>
+
+          <div className="flex items-center my-6">
+            <div className="flex-1 h-px bg-gray-300"></div>
+            <span className="px-2 text-gray-600">Or</span>
+            <div className="flex-1 h-px bg-gray-300"></div>
+          </div>
+
+          <div className="flex gap-4">
+            <button type="button" onClick={handleGoogleLogin} className="flex-1 flex items-center justify-center gap-2 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">
+              <FaGoogle /> Google
+            </button>
+            <button type="button" onClick={handleFacebookLogin} className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+              <FaFacebookF /> Facebook
+            </button>
+          </div>
 
           <p className="mt-6 text-center text-gray-700">
             Don’t have an account?{" "}
             <a href="/RegisterCompany" className="text-blue-700 font-semibold">
-              Register
+              Register Company
             </a>
           </p>
         </form>
@@ -105,14 +140,8 @@ const LoginCompany = () => {
 
       {popup.show && (
         <div
-          className={`fixed top-24 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg shadow-lg text-white font-medium animate-fade ${
-            popup.type === "success"
-              ? "bg-green-600"
-              : popup.type === "error"
-              ? "bg-red-600"
-              : popup.type === "warning"
-              ? "bg-yellow-400 text-black"
-              : "bg-blue-600"
+          className={`fixed top-24 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg shadow-lg text-white font-medium ${
+            popup.type === "success" ? "bg-green-600" : "bg-red-600"
           }`}
         >
           {popup.message}

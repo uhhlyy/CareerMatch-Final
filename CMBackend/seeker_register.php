@@ -24,7 +24,7 @@ if (!$firstName || !$lastName || !$email || !$password) {
 }
 
 // Check if email already exists
-$check = $conn->prepare("SELECT * FROM JobSeekers WHERE Email=?");
+$check = $conn->prepare("SELECT * FROM jobseekers WHERE Email=?");  // Changed to jobseekers
 $check->execute([$email]);
 if ($check->rowCount() > 0) {
     echo json_encode(['success'=>false,'message'=>'Email already registered']);
@@ -33,8 +33,8 @@ if ($check->rowCount() > 0) {
 
 $hash = password_hash($password, PASSWORD_DEFAULT);
 
-// Insert into JobSeekers table
-$stmt = $conn->prepare("INSERT INTO JobSeekers (FirstName, LastName, Email, PasswordHash) VALUES (?, ?, ?, ?)");
+// Insert into jobseekers table
+$stmt = $conn->prepare("INSERT INTO jobseekers (FirstName, LastName, Email, PasswordHash) VALUES (?, ?, ?, ?)");  // Changed to jobseekers
 if ($stmt->execute([$firstName, $lastName, $email, $hash])) {
     echo json_encode(['success'=>true,'message'=>'Registration successful']);
 } else {

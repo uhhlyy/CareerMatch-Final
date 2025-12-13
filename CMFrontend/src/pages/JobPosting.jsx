@@ -14,10 +14,26 @@ export default function JobPosting() {
     degree: "",
     experience: "",
     employmentLevel: "",
+    educationLevel: "", // New field for education level
+    photo: null, // New field for photo file
   });
+
+  const [photoPreview, setPhotoPreview] = useState(null); // For preview
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.id]: e.target.value });
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setFormData({ ...formData, photo: file });
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => setPhotoPreview(reader.result);
+      reader.readAsDataURL(file);
+    } else {
+      setPhotoPreview(null);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,12 +48,20 @@ export default function JobPosting() {
       degree: formData.degree,
       experience: formData.experience,
       employmentLevel: formData.employmentLevel,
+      educationLevel: formData.educationLevel, // Include new field
     };
+
+    // Use FormData for file upload
+    const formDataToSend = new FormData();
+    Object.keys(jobData).forEach(key => formDataToSend.append(key, jobData[key]));
+    if (formData.photo) {
+      formDataToSend.append('photo', formData.photo);
+    }
+
     try {
-      const response = await fetch('http://localhost/CareerMatchFinal/CMBackend/job_post.php', {
+      const response = await fetch('http://localhost/CareerMatch-Final/CMBackend/job_post.php', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(jobData),
+        body: formDataToSend, // No headers for FormData
       });
 
       const text = await response.text(); // Get raw response
@@ -71,7 +95,10 @@ export default function JobPosting() {
           degree: "",
           experience: "",
           employmentLevel: "",
+          educationLevel: "", // Reset new field
+          photo: null, // Reset photo
         });
+        setPhotoPreview(null); // Reset preview
       } else {
         alert(`Error: ${result.error}`);
       }
@@ -166,6 +193,28 @@ export default function JobPosting() {
               </div>
             ))}
 
+            {/* Photo Upload */}
+            <div className="relative">
+              <label className="text-sm font-semibold text-gray-700 mb-1 block">
+                Job Photo (Optional)
+              </label>
+              <input
+                id="photo"
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="
+                  w-full px-4 py-3 rounded-xl bg-white/80 shadow-md 
+                  outline-none border border-white/40 focus:ring-2 focus:ring-blue-500
+                "
+              />
+              {photoPreview && (
+                <div className="mt-2">
+                  <img src={photoPreview} alt="Photo Preview" className="w-20 h-20 object-cover rounded-lg border" />
+                </div>
+              )}
+            </div>
+
             {/* SELECT — JOB TYPE */}
             <div className="relative">
               <label className="text-sm font-semibold text-gray-700 mb-1 block">
@@ -207,6 +256,30 @@ export default function JobPosting() {
                 <option>Mid-level</option>
                 <option>Senior</option>
                 <option>Manager</option>
+              </select>
+            </div>
+
+            {/* SELECT — EDUCATION LEVEL */}
+            <div className="relative">
+              <label className="text-sm font-semibold text-gray-700 mb-1 block">
+                Education Level
+              </label>
+              <select
+                id="educationLevel"
+                value={formData.educationLevel}
+                onChange={handleChange}
+                className="
+                  w-full px-4 py-3 rounded-xl bg-white/80 shadow-md 
+                  outline-none border border-white/40 focus:ring-2 focus:ring-blue-500
+                "
+              >
+                <option value="">Select education level</option>
+                <option>High School Graduate</option>
+                <option>College Undergraduate</option>
+                <option>Bachelor’s Degree</option>
+                <option>Master’s Degree</option>
+                <option>Vocational / TESDA</option>
+                <option>Bootcamp Graduate</option>
               </select>
             </div>
 
