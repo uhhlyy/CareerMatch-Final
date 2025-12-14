@@ -103,7 +103,7 @@ export default function ApplicationTracker() {
             <option value="">All Statuses</option>
             <option value="Accepted">Accepted</option>
             <option value="Denied">Denied</option>
-            <option value="Applied">Applied</option>
+            <option value="Pending">Pending</option>
           </select>
         </div>
 

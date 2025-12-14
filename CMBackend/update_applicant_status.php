@@ -1,37 +1,56 @@
 <?php
+// Prevent HTML error output
+ini_set('display_errors', 0); 
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { exit; }
+// Handle preflight OPTIONS request
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit;
+}
 
 include 'db.php'; 
 
-$data = json_decode(file_get_contents("php://input"), true);
-
-// We need applicant_id (the resume), employer_id (who swiped), and the decision
-if (isset($data['applicant_id'], $data['decision'], $data['employer_id'])) {
-    $resumeID = $data['applicant_id'];
-    $decision = $data['decision']; 
-    $employerID = $data['employer_id'];
-
-    try {
-        // Record the swipe in the applications table
-        // 'ON DUPLICATE KEY UPDATE' ensures that if the company swipes again, it updates the old decision
-        $stmt = $conn->prepare("
-            INSERT INTO applications (resume_id, employer_id, status, date_applied) 
-            VALUES (?, ?, ?, NOW()) 
-            ON DUPLICATE KEY UPDATE status = VALUES(status), date_applied = NOW()
-        ");
-        
-        $stmt->execute([$resumeID, $employerID, $decision]);
-
-        echo json_encode(["success" => true, "message" => "Decision recorded for this employer"]);
-    } catch (PDOException $e) {
-        echo json_encode(["success" => false, "error" => "Database error: " . $e->getMessage()]);
+try {
+    // 1. Get the PDO connection
+    $db = isset($pdo) ? $pdo : (isset($conn) ? $conn : null);
+    if (!$db) {
+        throw new Exception("Database connection variable not found.");
     }
-} else {
-    echo json_encode(["success" => false, "error" => "Missing required fields"]);
+
+    // 2. Read the JSON input from React
+    $input = file_get_contents("php://input");
+    $data = json_decode($input, true);
+
+    // 3. Validate the fields (matching the React payload exactly)
+    if (!isset($data['application_id']) || !isset($data['decision'])) {
+        throw new Exception("Missing required fields. Received: " . $input);
+    }
+
+    $app_id = intval($data['application_id']);
+    $decision = $data['decision']; // 'Accepted' or 'Rejected'
+
+    // 4. Update the database using the Primary Key 'id'
+    $sql = "UPDATE applications SET status = :status WHERE id = :id";
+    $stmt = $db->prepare($sql);
+    $success = $stmt->execute([
+        'status' => $decision,
+        'id' => $app_id
+    ]);
+
+    if ($success) {
+        echo json_encode(["success" => true, "message" => "Status updated to $decision"]);
+    } else {
+        throw new Exception("Failed to execute database update.");
+    }
+
+} catch (Exception $e) {
+    http_response_code(400);
+    echo json_encode([
+        "success" => false, 
+        "error" => $e->getMessage()
+    ]);
 }
 ?>

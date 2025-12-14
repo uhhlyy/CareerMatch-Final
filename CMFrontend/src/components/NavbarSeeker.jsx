@@ -8,14 +8,14 @@ export default function NavbarSeeker() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.clear(); // Clears seeker_id and authToken
+    localStorage.clear(); 
     navigate('/');
   };
 
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/SeekerMainPage' },
     { icon: ClipboardList, label: 'Application Tracker', path: '/Seeker_ApplicationTracker' },
-    { icon: User, label: 'Profile' },
+    { icon: User, label: 'Profile',path: '/SeekerProfile' },
     { icon: Files, label: 'Resume Builder', path: '/ResumeBuilder' },
     { icon: LogOut, label: 'Sign Out', action: handleLogout },
   ];
@@ -56,6 +56,9 @@ export default function NavbarSeeker() {
         <nav className="mt-8 px-3">
           {menuItems.map((item, index) => {
             const Icon = item.icon;
+            // Check if label is long to reduce font size
+            const isLongLabel = item.label === 'Application Tracker';
+
             return (
               <button
                 key={index}
@@ -66,7 +69,12 @@ export default function NavbarSeeker() {
                 }}
               >
                 <Icon className="w-6 h-6 min-w-6" />
-                <span className={`ml-4 font-medium whitespace-nowrap transition-all duration-300 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0'} overflow-hidden`}>
+                <span 
+                  className={`ml-4 font-medium whitespace-nowrap transition-all duration-300 
+                    ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0'} 
+                    ${isLongLabel ? 'text-sm' : 'text-base'} 
+                    overflow-hidden`}
+                >
                   {item.label}
                 </span>
               </button>
@@ -77,7 +85,7 @@ export default function NavbarSeeker() {
         {/* User Profile */}
         <div className="absolute bottom-0 w-full border-t border-slate-700">
           <div className="flex items-center px-6 py-4">
-            <div className="w-10 h-10 rounded-full left-2 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold min-w-10">JD</div>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold min-w-10">JD</div>
             <div className={`ml-3 transition-all duration-300 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0'} overflow-hidden`}>
               <p className="text-white font-medium text-sm whitespace-nowrap">John Doe</p>
               <p className="text-slate-400 text-xs whitespace-nowrap">john@example.com</p>
@@ -104,6 +112,7 @@ export default function NavbarSeeker() {
           <nav className="mt-8 px-3">
             {menuItems.map((item, index) => {
               const Icon = item.icon;
+              const isLongLabel = item.label === 'Application Tracker';
               return (
                 <button
                   key={index}
@@ -119,7 +128,9 @@ export default function NavbarSeeker() {
                   }}
                 >
                   <Icon className="w-6 h-6 min-w-6" />
-                  <span className="ml-4 font-medium whitespace-nowrap">{item.label}</span>
+                  <span className={`ml-4 font-medium whitespace-nowrap ${isLongLabel ? 'text-sm' : 'text-base'}`}>
+                    {item.label}
+                  </span>
                 </button>
               );
             })}

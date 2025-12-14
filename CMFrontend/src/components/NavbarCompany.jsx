@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, User, LogOut, Files, Menu, X } from 'lucide-react';
+import { Home, User, LogOut, Files, Menu, X, CheckCircle } from 'lucide-react'; // Added CheckCircle
 
 export default function NavbarCompany() {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -8,14 +8,16 @@ export default function NavbarCompany() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.clear(); // Clears employer_id and authToken to prevent role conflicts
+    localStorage.clear(); 
     navigate('/');
   };
 
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/CompanyMainPage' },
-    { icon: User, label: 'Profile' },
     { icon: Files, label: 'Job Postings', path: '/JobPosting' },
+    // --- ADDED THIS LINE ---
+    { icon: CheckCircle, label: 'Hired Applicants', path: '/EmployerReview' }, 
+    { icon: User, label: 'Profile' },
     { icon: LogOut, label: 'Sign Out', action: handleLogout },
   ];
 
@@ -76,10 +78,10 @@ export default function NavbarCompany() {
         {/* User Profile */}
         <div className="absolute bottom-0 w-full border-t border-slate-700">
           <div className="flex items-center px-6 py-4">
-            <div className="w-10 h-10 rounded-full left-2 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold min-w-10">CO</div>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold min-w-10">CO</div>
             <div className={`ml-3 transition-all duration-300 ${isExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0'} overflow-hidden`}>
               <p className="text-white font-medium text-sm whitespace-nowrap">Company User</p>
-              <p className="text-slate-400 text-xs whitespace-nowrap">company@example.com</p>
+              <p className="text-slate-400 text-xs whitespace-nowrap">employer@careermatch.com</p>
             </div>
           </div>
         </div>

@@ -13,14 +13,16 @@ import ResumeBuilder from './pages/ResumeBuilder'
 import CompanyMainPage from './pages/CompanyMainPage'
 import JobPosting from './pages/JobPosting'
 import Seeker_ApplicationTracker from './pages/Seeker_ApplicationTracker'
+import EmployerReview from './pages/EmployerReview'
 
 import Navbar from './components/Navbar'
 import NavbarSeeker from './components/NavbarSeeker'
 import NavbarCompany from './components/NavbarCompany'
+import SeekerProfile from './pages/SeekerProfile'
 
 function AppContent() {
   const location = useLocation();
-  const hideNavbarRoutes = ['/roleselection', '/SeekerMainPage', '/ResumeBuilder', '/CompanyMainPage', '/JobPosting', '/Seeker_ApplicationTracker'];
+  const hideNavbarRoutes = ['/roleselection', '/SeekerMainPage', '/ResumeBuilder', '/CompanyMainPage', '/JobPosting', '/Seeker_ApplicationTracker', '/EmployerReview','/SeekerProfile'];
 
   return (
     <>
@@ -36,6 +38,8 @@ function AppContent() {
         <Route path="/ResumeBuilder" element={<ResumeBuilder />} />
         <Route path="/CompanyMainPage" element={<CompanyMainPage />} />
         <Route path="/JobPosting" element={<JobPosting />} />
+        <Route path="/EmployerReview" element={<EmployerReview />} />
+        <Route path="/SeekerProfile" element={<SeekerProfile />} />
         <Route path="/Seeker_ApplicationTracker" element={<Seeker_ApplicationTracker />} />
         
       </Routes>
