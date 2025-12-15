@@ -14,8 +14,7 @@ export default function NavbarAdmin() {
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Stats', path: '/AdminDashboard' },
-    { icon: Building2, label: 'Employers', path: '/AdminEmployers' },
-    { icon: Users, label: 'Job Seekers', path: '/AdminSeekers' },
+    { icon: Building2, label: 'Users', path: '/AdminUsers' },
     { icon: LogOut, label: 'Sign Out', action: handleLogout },
   ];
 

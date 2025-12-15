@@ -33,9 +33,11 @@ export default function AdminUsers() {
         const data = await response.json();
         if (data.success) {
           setUsers(prev => prev.filter(u => !(u.id === id && u.role === role)));
+        } else {
+          alert("Delete failed: " + data.error);
         }
       } catch (error) {
-        alert("Server error during deletion");
+        alert("Server connection failed");
       }
     }
   };
@@ -66,7 +68,7 @@ export default function AdminUsers() {
           </thead>
           <tbody className="divide-y divide-slate-50">
             {data.length > 0 ? data.map((user) => (
-              <tr key={`${user.role}-${user.id}`} className="hover:bg-slate-50/50 transition-colors">
+              <tr key={`${user.role}-${user.id}`} className="hover:bg-slate-50/50 transition-colors group">
                 <td className="p-6 text-sm font-bold text-slate-400">#{user.id}</td>
                 <td className="p-6">
                   <div className="flex items-center gap-3">
@@ -75,16 +77,18 @@ export default function AdminUsers() {
                   </div>
                 </td>
                 <td className="p-6 text-center">
+                  {/* CLEANED ACTIONS: Only Delete icon remains, centered */}
                   <button 
                     onClick={() => handleDelete(user.id, user.email, user.role)}
                     className="p-2.5 hover:bg-red-50 rounded-xl transition text-slate-300 hover:text-red-600 border border-transparent hover:border-red-100"
+                    title="Delete Account"
                   >
                     🗑️
                   </button>
                 </td>
               </tr>
             )) : (
-              <tr><td colSpan="3" className="p-10 text-center text-slate-300 italic text-sm">No {title} records found</td></tr>
+              <tr><td colSpan="3" className="p-10 text-center text-slate-300 italic text-sm">No {title} found</td></tr>
             )}
           </tbody>
         </table>
@@ -98,14 +102,14 @@ export default function AdminUsers() {
       <div className="flex-1 md:ml-[72px] p-6 md:p-10 pt-24 md:pt-10 overflow-y-auto">
         <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-4xl font-black text-slate-900 tracking-tight">User Database</h2>
-            <p className="text-slate-500 font-medium">Manage jobseekers and employers accounts</p>
+            <h2 className="text-4xl font-black text-slate-900 tracking-tight">User Management</h2>
+            <p className="text-slate-500 font-medium italic text-sm">Managing jobseekers and employers tables</p>
           </div>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
             <input 
               type="text" 
-              placeholder="Filter by email..." 
+              placeholder="Search by email..." 
               className="pl-12 pr-6 py-3 bg-white border border-slate-200 rounded-2xl w-full md:w-80 shadow-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -113,11 +117,11 @@ export default function AdminUsers() {
         </header>
 
         {loading ? (
-          <div className="p-20 text-center text-slate-400 font-bold animate-pulse">Connecting to Server...</div>
+          <div className="p-20 text-center text-slate-400 font-bold animate-pulse">Fetching Database...</div>
         ) : (
           <>
             <UserTable title="Job Seekers" data={seekers} accentColor="text-indigo-600" />
-            <UserTable title="Employers" data={employers} accentColor="text-blue-600" />
+            <UserTable title="Job Employers" data={employers} accentColor="text-blue-600" />
           </>
         )}
       </div>
