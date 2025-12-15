@@ -19,7 +19,7 @@ function Roleselection() {
         
 
 {/* Main Content - Flex Layout */}
-<div className="flex flex-col lg:flex-row items-stretch bg-white min-h-[400px]">
+<div className="animate-fade-up opacity-0 delay-100 flex flex-col lg:flex-row items-stretch bg-white min-h-[400px]">
             
             {/* LEFT SECTION - Image */}
             <div className="flex-1 flex w-full h-48 sm:h-130 justify-center items-center p-4 sm:p-8 min-h-full" style={{ backgroundColor: '#2A5298' }}>

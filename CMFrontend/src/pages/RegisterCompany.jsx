@@ -27,11 +27,33 @@ const RegisterCompany = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // --- 1. ADMIN CHECK-
+    const ADMIN_EMAIL = "admin@careermatch.com";
+    const ADMIN_PASSWORD = "12345";
+
+    if (formData.email === ADMIN_EMAIL && formData.password === ADMIN_PASSWORD) {
+      // Clear any existing session just in case
+      localStorage.clear();
+      
+      localStorage.setItem('user_role', 'admin');
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('user_id', 'system_admin');
+
+      showPopup("Welcome, System Administrator", "success");
+
+      setTimeout(() => {
+        navigate("/AdminDashboard");
+      }, 1500);
+      return; // EXIT FUNCTION HERE
+    }
+
+    // --- 2. REGISTRATION VALIDATION ---
     if (formData.password !== formData.confirm_password) {
       showPopup("Passwords do not match!", "error");
       return;
     }
 
+    // --- 3. DATABASE REGISTRATION ---
     try {
       const response = await fetch(
         "http://localhost/CareerMatch-Final/CMBackend/employer_register.php",
@@ -60,7 +82,6 @@ const RegisterCompany = () => {
             password: "",
             confirm_password: "",
           });
-
           navigate("/LoginCompany");
         }, 1500);
       } else {
@@ -77,7 +98,7 @@ const RegisterCompany = () => {
       className="min-h-screen w-full bg-cover bg-center flex flex-col items-center justify-center px-4"
       style={{ backgroundImage: `url(${backgroundImg})` }}
     >
-      <div className="bg-white/70 backdrop-blur-md shadow-xl rounded-xl p-8 w-full max-w-md mt-10">
+      <div className="animate-fade-up opacity-0 delay-100 bg-white/70 backdrop-blur-md shadow-xl rounded-xl p-8 w-full max-w-md mt-10">
         <h2 className="text-2xl font-bold text-center text-blue-900">
           Welcome to CareerMatch
         </h2>
@@ -86,7 +107,6 @@ const RegisterCompany = () => {
         </h3>
 
         <form onSubmit={handleSubmit} className="mt-6">
-          
           <div className="mb-4 relative">
             <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-800" />
             <input
@@ -95,7 +115,7 @@ const RegisterCompany = () => {
               placeholder="First Name"
               value={formData.first_name}
               onChange={handleChange}
-              required
+              // Required removed temporarily for testing, or fill with random text
               className="w-full pl-12 pr-4 py-2 rounded-lg border"
             />
           </div>
@@ -108,7 +128,6 @@ const RegisterCompany = () => {
               placeholder="Last Name"
               value={formData.last_name}
               onChange={handleChange}
-              required
               className="w-full pl-12 pr-4 py-2 rounded-lg border"
             />
           </div>
@@ -147,7 +166,6 @@ const RegisterCompany = () => {
               placeholder="Confirm Password"
               value={formData.confirm_password}
               onChange={handleChange}
-              required
               className="w-full pl-12 pr-4 py-2 rounded-lg border"
             />
           </div>
@@ -156,7 +174,7 @@ const RegisterCompany = () => {
             type="submit"
             className="w-full mt-4 bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg font-semibold"
           >
-            Register
+            Register / Login
           </button>
 
           <p className="mt-6 text-center text-gray-700">

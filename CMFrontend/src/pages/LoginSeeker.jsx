@@ -57,7 +57,7 @@ const LoginSeeker = () => {
       className="min-h-screen w-full bg-cover bg-center flex flex-col items-center justify-center px-4"
       style={{ backgroundImage: `url(${backgroundImg})` }}
     >
-      <div className="bg-white/70 backdrop-blur-md shadow-xl rounded-xl p-8 w-full max-w-md mt-10">
+      <div className="animate-fade-up opacity-0 delay-100 bg-white/70 backdrop-blur-md shadow-xl rounded-xl p-8 w-full max-w-md mt-10">
         <h2 className="text-2xl font-bold text-center text-blue-900">
           Welcome to CareerMatch
         </h2>

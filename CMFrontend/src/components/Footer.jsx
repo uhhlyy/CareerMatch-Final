@@ -15,7 +15,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-gray-600">
               <li><a href="/about" className="hover:text-blue-600">About</a></li>
               <li><a href="/careers" className="hover:text-blue-600">Careers</a></li>
-              <li><a href="/press" className="hover:text-blue-600">Press</a></li>
+     
             </ul>
           </div>
 
@@ -23,8 +23,8 @@ export default function Footer() {
             <h4 className="font-semibold text-gray-900 mb-3">Product</h4>
             <ul className="space-y-2 text-sm text-gray-600">
               <li><a href="/roleselection" className="hover:text-blue-600">Find Jobs</a></li>
-              <li><a href="/employers" className="hover:text-blue-600">For Employers</a></li>
-              <li><a href="/pricing" className="hover:text-blue-600">Pricing</a></li>
+              <li><a href="/RegisterCompany" className="hover:text-blue-600">For Employers</a></li>
+        
             </ul>
           </div>
 

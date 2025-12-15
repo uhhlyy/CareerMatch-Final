@@ -101,7 +101,7 @@ export default function JobPosting() {
     <>
       <NavbarCompany />
       <div className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300 pt-24 pb-14 flex justify-center px-5">
-        <main className="w-full max-w-5xl p-10 rounded-3xl bg-white/80 shadow-[0px_20px_40px_rgba(0,0,0,0.25)] border border-white/20 transition-all hover:bg-white/90">
+        <main className="animate-fade-up opacity-0 delay-100 w-full max-w-5xl p-10 rounded-3xl bg-white/80 shadow-[0px_20px_40px_rgba(0,0,0,0.25)] border border-white/20 transition-all hover:bg-white/90">
           <h1 className="text-4xl font-extrabold text-center text-blue-900 drop-shadow mb-12 tracking-tight">Post a Job</h1>
 
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-7 w-full">

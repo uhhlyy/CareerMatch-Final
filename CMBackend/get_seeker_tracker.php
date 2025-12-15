@@ -28,24 +28,27 @@ if (!$seekerID || $seekerID === 'null') {
 }
 
 try {
-   // Inside your get_seeker_tracker.php
-$query = "
-    SELECT 
-        a.status, 
-        a.date_applied, 
-        e.LastName, 
-        r.JobPreferences,  -- Add this line
-        r.Title as jobTitle, -- You can keep this or remove it
-        r.Summary,
-        r.Education,
-        r.Skills,
-        r.Experience
-    FROM applications a
-    JOIN employers e ON a.employer_id = e.EmployerID
-    JOIN resumes r ON a.resume_id = r.id
-    WHERE r.SeekerID = ?
-    ORDER BY a.date_applied DESC
-";
+    $query = "
+        SELECT 
+            a.status, 
+            a.date_applied, 
+            e.LastName as EmployerName, 
+            e.Email as EmployerEmail, -- Added this to get contact info
+            j.title as JobTitle,
+            j.location as JobLocation,
+            j.salary as JobSalary,
+            r.JobPreferences as SeekerTarget, 
+            r.Summary,
+            r.Education,
+            r.Skills,
+            r.Experience
+        FROM applications a
+        JOIN employers e ON a.employer_id = e.EmployerID
+        JOIN jobs j ON a.job_id = j.id
+        JOIN resumes r ON a.resume_id = r.id
+        WHERE a.seeker_id = ?
+        ORDER BY a.date_applied DESC
+    ";
 
     $stmt = $conn->prepare($query);
     $stmt->execute([$seekerID]);

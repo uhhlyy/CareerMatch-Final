@@ -3,7 +3,6 @@ header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json");
 include 'db.php'; 
 
-// Use the ID sent from the React frontend
 $employer_id = isset($_GET['employer_id']) ? intval($_GET['employer_id']) : 0;
 
 if ($employer_id === 0) {
@@ -14,14 +13,18 @@ if ($employer_id === 0) {
 try {
     $db = isset($pdo) ? $pdo : $conn;
     
-    // Exact column name: employer_id
-    $sql = "SELECT * FROM jobs WHERE employer_id = :eid ORDER BY id DESC";
+    // We count only rows in swiped_actions where action = 'apply' for each job
+    $sql = "SELECT 
+                j.*, 
+                (SELECT COUNT(*) FROM swiped_actions WHERE job_id = j.id AND action = 'apply') AS applicant_count 
+            FROM jobs j
+            WHERE j.employer_id = :eid 
+            ORDER BY j.id DESC";
     
     $stmt = $db->prepare($sql);
     $stmt->execute(['eid' => $employer_id]);
     $jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // React expects an array for .map() to work
     echo json_encode($jobs); 
 
 } catch (PDOException $e) {

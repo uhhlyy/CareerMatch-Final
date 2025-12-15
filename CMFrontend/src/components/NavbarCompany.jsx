@@ -16,7 +16,7 @@ export default function NavbarCompany() {
     { icon: Home, label: 'Dashboard', path: '/CompanyMainPage' },
     { icon: Files, label: 'Job Postings', path: '/JobPosting' },
     // --- ADDED THIS LINE ---
-    { icon: CheckCircle, label: 'Hired Applicants', path: '/EmployerReview' }, 
+    { icon: CheckCircle, label: 'View Applicants', path: '/EmployerReview' }, 
     { icon: User, label: 'Profile' },
     { icon: LogOut, label: 'Sign Out', action: handleLogout },
   ];

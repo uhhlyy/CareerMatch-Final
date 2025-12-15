@@ -63,7 +63,7 @@ export default function SeekerProfile() {
         <div className="max-w-5xl mx-auto">
           
           {/* TOP PROFILE HEADER */}
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+          <div className="animate-fade-up opacity-0 delay-100 bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mb-8">
             <div className="h-32 bg-gradient-to-r from-slate-900 to-blue-800" />
             <div className="px-8 pb-8 relative">
               <div className="flex justify-between items-end -mt-12 mb-6">
@@ -90,7 +90,7 @@ export default function SeekerProfile() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="animate-fade-up opacity-0 delay-300 grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* SIDE COLUMN */}
             <div className="space-y-8">
               <section className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">

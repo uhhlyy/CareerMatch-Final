@@ -60,7 +60,7 @@ export default function SeekerMainPage() {
     checkResumeStatus();
   }, [navigate]);
 
-  // 2. Fetch Jobs (excluding already swiped ones)
+  // 2. Fetch Jobs
   useEffect(() => {
     if (hasResume === true) {
       const loadJobs = async () => {
@@ -88,7 +88,7 @@ export default function SeekerMainPage() {
   }, [hasResume]);
 
   // 3. Helpers & Filter Logic
-  // UPDATED: Generic number extractor for both Salary and Experience strings
+
   const extractNumber = (val) => {
     if (!val) return 0;
     const match = val.toString().match(/(\d+(?:\.\d+)?)/);
@@ -349,18 +349,18 @@ export default function SeekerMainPage() {
           <div className="w-full max-w-xl px-6">
             <div className="flex justify-between items-end mb-8">
               <div>
-                <h1 className="text-white text-4xl font-black tracking-tighter">Discover</h1>
-                <p className="text-blue-100 text-sm opacity-80">Find your next career match</p>
+                <h1 className="animate-fade-up opacity-0 delay-100 text-white text-4xl font-black tracking-tighter">Discover</h1>
+                <p className="animate-fade-up opacity-0 delay-100 text-blue-100 text-sm opacity-80">Find your next career match</p>
               </div>
               <button 
                 onClick={() => setShowFilters(true)} 
-                className="p-3 bg-white/10 text-white border border-white/20 backdrop-blur-xl rounded-2xl hover:bg-white/20 transition shadow-xl"
+                className="animate-fade-up opacity-0 delay-100 p-3 bg-white/10 text-white border border-white/20 backdrop-blur-xl rounded-2xl hover:bg-white/20 transition shadow-xl"
               >
                 ⚙️ Filters
               </button>
             </div>
 
-            <div className="relative h-[650px] mb-12">
+            <div className="animate-fade-up opacity-0 delay-300 relative h-[650px] mb-12">
               {jobs.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center text-white p-10 bg-white/5 rounded-3xl border-2 border-dashed border-white/20">
                   <p className="text-2xl font-bold">Scanning for Jobs...</p>

@@ -131,7 +131,7 @@ export default function ResumeBuilder() {
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* LEFT COLUMN */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-8 shadow-xl border border-white/40 space-y-6">
+          <div className="animate-fade-up opacity-0 delay-100 bg-white/80 backdrop-blur-xl rounded-2xl p-8 shadow-xl border border-white/40 space-y-6">
             {[
               ["fullName", "Full Name", "text"],
               ["maritalStatus", "Marital Status", "text"],
@@ -182,7 +182,7 @@ export default function ResumeBuilder() {
           </div>
 
           {/* RIGHT COLUMN */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-8 shadow-xl border border-white/40 space-y-6">
+          <div className="animate-fade-up opacity-0 delay-300 bg-white/80 backdrop-blur-xl rounded-2xl p-8 shadow-xl border border-white/40 space-y-6">
             {[
               ["title", "Job Title / Headline"],
               ["summary", "Professional Summary"],
