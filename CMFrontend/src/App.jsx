@@ -17,10 +17,12 @@ import EmployerReview from './pages/EmployerReview'
 import AdminDashboard from './pages/AdminDashboard' 
 import AdminUsers from './pages/AdminUsers'
 
+
 import Navbar from './components/Navbar'
 import NavbarSeeker from './components/NavbarSeeker'
 import NavbarCompany from './components/NavbarCompany'
 import SeekerProfile from './pages/SeekerProfile'
+import AboutPage from './pages/about'
 
 function AppContent() {
   const location = useLocation();
@@ -45,7 +47,7 @@ function AppContent() {
         <Route path="/AdminUsers" element={<AdminUsers />} />
         <Route path="/AdminDashboard" element={<AdminDashboard />} />
         <Route path="/Seeker_ApplicationTracker" element={<Seeker_ApplicationTracker />} />
-        
+        <Route path="/about" element={<AboutPage />} />
       </Routes>
     </>
   );

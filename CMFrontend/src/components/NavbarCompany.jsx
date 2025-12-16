@@ -1,11 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, User, LogOut, Files, Menu, X, CheckCircle } from 'lucide-react'; // Added CheckCircle
+import { Home, User, LogOut, Files, Menu, X, CheckCircle } from 'lucide-react';
 
 export default function NavbarCompany() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
+
+  // Dispatch sidebar state changes for layout adjustments
+  useEffect(() => {
+    const event = new CustomEvent('companySidebarStateChange', {
+      detail: { isExpanded }
+    });
+    window.dispatchEvent(event);
+  }, [isExpanded]);
 
   const handleLogout = () => {
     localStorage.clear(); 
@@ -15,7 +23,6 @@ export default function NavbarCompany() {
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/CompanyMainPage' },
     { icon: Files, label: 'Job Postings', path: '/JobPosting' },
-    // --- ADDED THIS LINE ---
     { icon: CheckCircle, label: 'View Applicants', path: '/EmployerReview' }, 
     { icon: User, label: 'Profile' },
     { icon: LogOut, label: 'Sign Out', action: handleLogout },
@@ -38,7 +45,7 @@ export default function NavbarCompany() {
 
       {/* Sidebar for desktop */}
       <div
-        className={`hidden md:block fixed top-0 left-0 h-full z-30 ${isExpanded ? 'w-60' : 'w-18'} bg-gradient-to-b from-slate-900 to-slate-800 transition-all duration-300 ease-in-out shadow-2xl`}
+        className={`hidden md:block fixed top-0 left-0 h-full z-30 ${isExpanded ? 'w-64' : 'w-20'} bg-gradient-to-b from-slate-900 to-slate-800 transition-all duration-300 ease-in-out shadow-2xl`}
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
         style={{ fontFamily: 'Poppins, sans-serif' }}

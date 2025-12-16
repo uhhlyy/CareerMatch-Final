@@ -1,6 +1,23 @@
 import React, { useState, useEffect, useRef } from "react";
-import NavbarSeeker from "../components/NavbarSeeker";
+import SeekerLayout from "../components/SeekerLayout";
 import { useNavigate } from "react-router-dom";
+import { 
+  MapPin, 
+  GraduationCap, 
+  DollarSign, 
+  Briefcase, 
+  X, 
+  Check, 
+  SlidersHorizontal,
+  Building2,
+  Clock,
+  Sparkles,
+  RefreshCw,
+  Search,
+  TrendingUp,
+  ChevronLeft,
+  ChevronRight
+} from "lucide-react";
 
 const SWIPE_THRESHOLD = 120;
 
@@ -11,18 +28,15 @@ export default function SeekerMainPage() {
   const [filterJobPref, setFilterJobPref] = useState("");
   const [minSalary, setMinSalary] = useState("");
   const [maxSalary, setMaxSalary] = useState("");
-  
-  // NEW STATES ADDED
   const [minExp, setMinExp] = useState("");
   const [maxExp, setMaxExp] = useState("");
-  
   const [selectedJobTypes, setSelectedJobTypes] = useState([]);
   const [filterEducationLevel, setFilterEducationLevel] = useState(""); 
   const [showFilters, setShowFilters] = useState(false);
-  
   const [hasResume, setHasResume] = useState(null); 
   const [checkingResume, setCheckingResume] = useState(true);
   const [error, setError] = useState(null);
+  const [declinedJobs, setDeclinedJobs] = useState([]);
 
   const startXRef = useRef(0);
   const currentXRef = useRef(0);
@@ -88,23 +102,20 @@ export default function SeekerMainPage() {
   }, [hasResume]);
 
   // 3. Helpers & Filter Logic
-
   const extractNumber = (val) => {
     if (!val) return 0;
     const match = val.toString().match(/(\d+(?:\.\d+)?)/);
     return match ? parseFloat(match[1].replace(/,/g, '')) : 0;
   };
 
-  const filteredJobs = jobs.filter(job => {
+  const filteredJobs = [...jobs.filter(job => {
     const title = job.title || job.Title || "";
     const prefMatch = !filterJobPref || title.toLowerCase().includes(filterJobPref.toLowerCase());
     
-    // Salary Filter Logic
     const jobSalary = extractNumber(job.salary || job.Salary || "");
     const minSalMatch = !minSalary || jobSalary >= parseFloat(minSalary);
     const maxSalMatch = !maxSalary || jobSalary <= parseFloat(maxSalary);
     
-    // NEW: Experience Filter Logic
     const jobExp = extractNumber(job.experience || job.Experience || job.Exp || "");
     const minExpMatch = !minExp || jobExp >= parseFloat(minExp);
     const maxExpMatch = !maxExp || jobExp <= parseFloat(maxExp);
@@ -116,11 +127,11 @@ export default function SeekerMainPage() {
     const educationMatch = !filterEducationLevel || eduLevel === filterEducationLevel; 
     
     return prefMatch && minSalMatch && maxSalMatch && minExpMatch && maxExpMatch && typeMatch && educationMatch;
-  });
+  }), ...declinedJobs];
 
-  // UPDATED Dependency Array to include new Experience filters
   useEffect(() => {
     setCurrentIndex(0);
+    setDeclinedJobs([]);
   }, [filterJobPref, minSalary, maxSalary, minExp, maxExp, selectedJobTypes, filterEducationLevel]);
 
   // 4. Swipe Logic
@@ -241,6 +252,17 @@ export default function SeekerMainPage() {
     
     handleSwipeAction(job, direction === "right" ? 'apply' : 'decline');
 
+    if (direction === "left") {
+      const jobId = job.id || job.job_id;
+      setDeclinedJobs(prev => {
+        const exists = prev.some(j => (j.id || j.job_id) === jobId);
+        if (!exists) {
+          return [...prev, job];
+        }
+        return prev;
+      });
+    }
+
     card.style.transition = "transform 0.4s ease-out, opacity 0.4s ease-out";
     card.style.transform = direction === "right" 
       ? "translateX(1200px) rotate(40deg)" 
@@ -248,7 +270,13 @@ export default function SeekerMainPage() {
     card.style.opacity = "0";
     
     setTimeout(() => {
-      setCurrentIndex((i) => i + 1);
+      setCurrentIndex((i) => {
+        const nextIndex = i + 1;
+        if (nextIndex >= filteredJobs.length && declinedJobs.length > 0) {
+          return jobs.length;
+        }
+        return nextIndex;
+      });
     }, 300);
   };
 
@@ -263,60 +291,123 @@ export default function SeekerMainPage() {
         key={job.id || index} 
         data-index={index} 
         onPointerDown={(e) => handlePointerDown(e, index)} 
-        className="job-card bg-white rounded-3xl shadow-2xl border border-gray-100 p-6 cursor-grab select-none touch-none"
+        className="job-card bg-white rounded-3xl shadow-xl border border-slate-200 p-6 sm:p-8 cursor-grab select-none touch-none"
       >
         <div className="flex flex-col h-full">
-          <div className="relative w-full h-44 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-900 flex items-center justify-center text-white text-5xl font-black shadow-inner overflow-hidden mb-6">
+          {/* Company Logo/Header */}
+          <div className="relative w-full h-40 sm:h-48 rounded-2xl bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 flex items-center justify-center text-white text-5xl sm:text-6xl font-black shadow-lg overflow-hidden mb-6">
             {(job.Photo || job.photo) ? (
               <img 
                 src={`http://localhost/CareerMatch-Final/CMBackend/${job.Photo || job.photo}`} 
                 alt="Logo" 
                 className="w-full h-full object-cover" 
-                onError={(e) => { e.target.style.display = 'none'; e.target.parentElement.innerHTML = initials; }} 
+                onError={(e) => { 
+                  e.target.style.display = 'none'; 
+                  e.target.parentElement.innerHTML = `<div class="text-5xl sm:text-6xl font-black">${initials}</div>`; 
+                }} 
               />
-            ) : initials}
+            ) : (
+              <div className="text-5xl sm:text-6xl font-black">{initials}</div>
+            )}
           </div>
 
-          <div className="mb-4">
-            <h2 className="text-2xl font-extrabold text-gray-900 leading-tight mb-1">{title}</h2>
-            <p className="text-blue-600 font-bold text-lg">{company}</p>
+          {/* Job Title & Company */}
+          <div className="mb-6">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 leading-tight mb-2">{title}</h2>
+            <div className="flex items-center gap-2 text-slate-600">
+              <Building2 size={18} strokeWidth={2} />
+              <p className="font-semibold text-base sm:text-lg">{company}</p>
+            </div>
           </div>
 
+          {/* Job Details Grid */}
           <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="flex items-center gap-2 text-gray-600 bg-gray-50 p-3 rounded-xl">
-              <span className="text-xl">📍</span>
-              <span className="text-xs font-bold truncate">{job.location || job.Location || "Not Specified"}</span>
+            <div className="flex items-center gap-3 bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-100">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <MapPin size={18} className="text-blue-600" strokeWidth={2} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-0.5">Location</p>
+                <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">{job.location || job.Location || "Remote"}</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-gray-600 bg-gray-50 p-3 rounded-xl">
-              <span className="text-xl">🎓</span>
-              <span className="text-xs font-bold truncate">{job.educationLevel || job.EducationLevel || "Open"}</span>
+
+            <div className="flex items-center gap-3 bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-100">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <GraduationCap size={18} className="text-purple-600" strokeWidth={2} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-0.5">Education</p>
+                <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">{job.educationLevel || job.EducationLevel || "Any"}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-100">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Clock size={18} className="text-green-600" strokeWidth={2} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-0.5">Experience</p>
+                <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+                  {job.experience || job.Experience || "Entry Level"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-100">
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Briefcase size={18} className="text-orange-600" strokeWidth={2} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-0.5">Type</p>
+                <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">{job.type || job.Type || "Full-Time"}</p>
+              </div>
             </div>
           </div>
 
-          <div className="flex-1 overflow-hidden">
-            <h3 className="text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Job Description</h3>
-            <p className="text-gray-600 text-sm leading-relaxed line-clamp-4">
+          {/* Description */}
+          <div className="flex-1 overflow-hidden mb-6">
+            <h3 className="text-xs font-bold text-slate-500 uppercase mb-3 tracking-wider flex items-center gap-2">
+              <span className="w-1 h-4 bg-slate-900 rounded-full"></span>
+              About this role
+            </h3>
+            <p className="text-slate-600 text-sm leading-relaxed line-clamp-4">
               {job.description || job.Description || "No description provided."}
             </p>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
+          {/* Salary Footer */}
+          <div className="mt-auto pt-6 border-t border-slate-200 flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="text-[10px] font-black text-gray-400 uppercase">Monthly Salary</span>
-              <span className="text-2xl font-black text-blue-600">{job.salary || job.Salary || "Negotiable"}</span>
+              <span className="text-xs font-semibold text-slate-500 mb-1">
+                Monthly Salary
+              </span>
+              <span className="text-2xl sm:text-3xl font-bold text-slate-900">{job.salary || job.Salary || "Negotiable"}</span>
             </div>
-            <span className="px-3 py-1 bg-blue-50 text-blue-700 text-[10px] font-black rounded-full uppercase tracking-tighter">
-              {job.type || job.Type || "Full-Time"}
-            </span>
+            <div className="flex flex-col items-end gap-2">
+              <span className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-full">
+                {job.type || job.Type || "Full-Time"}
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Swipe Overlays */}
-        <div className="swipe-accept absolute inset-0 flex items-center justify-center bg-green-500/90 rounded-3xl opacity-0 pointer-events-none transition-opacity">
-          <span className="text-white text-6xl font-black -rotate-12 border-8 border-white px-8 py-4 rounded-2xl">APPLY</span>
+        <div className="swipe-accept absolute inset-0 flex items-center justify-center bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl opacity-0 pointer-events-none transition-opacity">
+          <div className="flex flex-col items-center">
+            <Check size={64} className="text-white mb-4" strokeWidth={3} />
+            <span className="text-white text-4xl font-black -rotate-12 border-8 border-white px-6 py-3 rounded-2xl shadow-2xl">
+              APPLY
+            </span>
+          </div>
         </div>
-        <div className="swipe-decline absolute inset-0 flex items-center justify-center bg-red-500/90 rounded-3xl opacity-0 pointer-events-none transition-opacity">
-          <span className="text-white text-6xl font-black rotate-12 border-8 border-white px-8 py-4 rounded-2xl">SKIP</span>
+        <div className="swipe-decline absolute inset-0 flex items-center justify-center bg-gradient-to-br from-red-500 to-rose-600 rounded-3xl opacity-0 pointer-events-none transition-opacity">
+          <div className="flex flex-col items-center">
+            <X size={64} className="text-white mb-4" strokeWidth={3} />
+            <span className="text-white text-4xl font-black rotate-12 border-8 border-white px-6 py-3 rounded-2xl shadow-2xl">
+              SKIP
+            </span>
+          </div>
         </div>
       </div>
     );
@@ -324,182 +415,292 @@ export default function SeekerMainPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-red-900 flex flex-col items-center justify-center text-white p-6 text-center">
-        <h1 className="text-3xl font-black mb-4">Error Occurred</h1>
-        <p className="bg-red-800 p-4 rounded-2xl max-w-md">{error}</p>
-        <button onClick={() => window.location.reload()} className="mt-8 px-10 py-3 bg-white text-red-900 rounded-xl font-black shadow-xl">TRY AGAIN</button>
-      </div>
+      <SeekerLayout>
+        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-slate-900 p-6">
+          <div className="bg-white rounded-3xl p-10 max-w-md border border-red-200 shadow-xl text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <X size={32} className="text-red-600" strokeWidth={2} />
+            </div>
+            <h1 className="text-2xl font-bold mb-3">Error Occurred</h1>
+            <p className="text-slate-600 mb-6">{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="w-full px-6 py-3 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
+            >
+              <RefreshCw size={18} />
+              Try Again
+            </button>
+          </div>
+        </div>
+      </SeekerLayout>
     );
   }
 
   if (checkingResume) {
     return (
-      <div className="min-h-screen bg-blue-900 flex flex-col items-center justify-center text-white">
-        <div className="w-14 h-14 border-4 border-blue-400 border-t-white rounded-full animate-spin mb-6"></div>
-        <p className="text-xl font-black tracking-widest uppercase">Fetching Talent...</p>
-      </div>
+      <SeekerLayout>
+        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
+          <div className="bg-white rounded-3xl p-12 border border-slate-200 shadow-xl text-center">
+            <div className="w-16 h-16 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin mb-6 mx-auto"></div>
+            <p className="text-xl font-semibold text-slate-900 flex items-center justify-center gap-2">
+              <Sparkles size={20} className="animate-pulse" />
+              Loading Opportunities...
+            </p>
+          </div>
+        </div>
+      </SeekerLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-400 to-indigo-900 flex">
-      <NavbarSeeker />
-      <div className="flex-1 flex flex-col min-h-screen">
-        <main className="flex-1 flex flex-col items-center py-10">
-          <div className="w-full max-w-xl px-6">
-            <div className="flex justify-between items-end mb-8">
-              <div>
-                <h1 className="animate-fade-up opacity-0 delay-100 text-white text-4xl font-black tracking-tighter">Discover</h1>
-                <p className="animate-fade-up opacity-0 delay-100 text-blue-100 text-sm opacity-80">Find your next career match</p>
-              </div>
-              <button 
-                onClick={() => setShowFilters(true)} 
-                className="animate-fade-up opacity-0 delay-100 p-3 bg-white/10 text-white border border-white/20 backdrop-blur-xl rounded-2xl hover:bg-white/20 transition shadow-xl"
-              >
-                ⚙️ Filters
-              </button>
-            </div>
-
-            <div className="animate-fade-up opacity-0 delay-300 relative h-[650px] mb-12">
-              {jobs.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center text-white p-10 bg-white/5 rounded-3xl border-2 border-dashed border-white/20">
-                  <p className="text-2xl font-bold">Scanning for Jobs...</p>
-                  <p className="text-sm opacity-60 mt-2">Adjust your filters if this takes too long.</p>
+    <SeekerLayout>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
+        * {
+          font-family: 'Inter', sans-serif;
+        }
+        
+        @keyframes fade-up {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-fade-up {
+          animation: fade-up 0.6s ease-out forwards;
+        }
+        
+        .delay-100 {
+          animation-delay: 0.1s;
+        }
+        
+        .delay-300 {
+          animation-delay: 0.3s;
+        }
+      `}</style>
+      
+      <div className="min-h-screen bg-slate-50">
+        <div className="flex-1 flex flex-col min-h-screen">
+          <main className="flex-1 flex flex-col items-center py-8 sm:py-12 px-4">
+            <div className="w-full max-w-6xl">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8 sm:mb-10">
+                <div>
+                  <h1 className="animate-fade-up opacity-0 delay-100 text-slate-900 text-3xl sm:text-4xl font-bold mb-2">
+                    Discover Jobs
+                  </h1>
+                  <p className="animate-fade-up opacity-0 delay-100 text-slate-600 text-sm sm:text-base">
+                    Swipe right to apply, left to skip
+                  </p>
                 </div>
-              ) : filteredJobs.length === 0 || currentIndex >= filteredJobs.length ? (
-                <div className="h-full flex flex-col items-center justify-center text-center text-white p-12 bg-white/10 rounded-3xl backdrop-blur-2xl border border-white/20 shadow-2xl">
-                  <span className="text-7xl mb-6 animate-bounce">✨</span>
-                  <h2 className="text-3xl font-black mb-2">You're All Set!</h2>
-                  <p className="opacity-70 text-lg">No more jobs match your current criteria.</p>
+                <button 
+                  onClick={() => setShowFilters(true)} 
+                  className="animate-fade-up opacity-0 delay-100 inline-flex items-center gap-2 px-5 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm font-semibold text-sm"
+                >
+                  <SlidersHorizontal size={18} strokeWidth={2} />
+                  Filters
+                </button>
+              </div>
+
+              {/* Main Content Area with Side Buttons */}
+              <div className="animate-fade-up opacity-0 delay-300 relative flex items-center justify-center gap-4 sm:gap-8">
+                {/* Decline Button (Left) */}
+                {filteredJobs.length > 0 && currentIndex < filteredJobs.length && (
                   <button 
-                    onClick={() => {
-                      setCurrentIndex(0);
-                      setMinSalary(""); setMaxSalary("");
-                      setMinExp(""); setMaxExp("");
-                      setFilterJobPref("");
-                    }} 
-                    className="mt-10 px-8 py-3 bg-white text-blue-900 rounded-xl font-black hover:scale-105 transition active:scale-95"
+                    onClick={() => animateSwipe("left")} 
+                    className="hidden sm:flex w-16 h-16 rounded-full bg-white border-2 border-slate-200 text-red-500 shadow-lg hover:scale-110 hover:border-red-200 hover:shadow-xl active:scale-95 transition-all items-center justify-center group"
+                    aria-label="Skip job"
                   >
-                    RESET ALL FILTERS
+                    <X size={28} strokeWidth={2.5} className="group-hover:scale-110 transition-transform" />
+                  </button>
+                )}
+
+                {/* Card Stack Container */}
+                <div className="relative w-full max-w-xl h-[600px] sm:h-[700px]">
+                  {jobs.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white rounded-3xl border-2 border-dashed border-slate-200 shadow-sm">
+                      <Search size={48} className="text-slate-300 mb-4" strokeWidth={1.5} />
+                      <p className="text-xl font-bold text-slate-900 mb-2">Scanning for Jobs...</p>
+                      <p className="text-sm text-slate-500">Adjust your filters if this takes too long.</p>
+                    </div>
+                  ) : (filteredJobs.length === 0 || (currentIndex >= filteredJobs.length && declinedJobs.length === 0)) ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl">
+                      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+                        <Check size={40} className="text-green-600" strokeWidth={2} />
+                      </div>
+                      <h2 className="text-3xl font-bold mb-3 text-slate-900">All Done!</h2>
+                      <p className="text-slate-600 text-base mb-8">You've reviewed all available jobs</p>
+                      <button 
+                        onClick={() => {
+                          setCurrentIndex(0);
+                          setDeclinedJobs([]);
+                          setMinSalary(""); 
+                          setMaxSalary("");
+                          setMinExp(""); 
+                          setMaxExp("");
+                          setFilterJobPref("");
+                          setFilterEducationLevel("");
+                        }} 
+                        className="px-8 py-3 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-colors shadow-lg flex items-center gap-2"
+                      >
+                        <RefreshCw size={18} />
+                        Reset & View All Jobs
+                      </button>
+                    </div>
+                  ) : (
+                    filteredJobs.map((job, idx) => renderCard(job, idx))
+                  )}
+                </div>
+
+                {/* Accept Button (Right) */}
+                {filteredJobs.length > 0 && currentIndex < filteredJobs.length && (
+                  <button 
+                    onClick={() => animateSwipe("right")} 
+                    className="hidden sm:flex w-20 h-20 rounded-full bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-xl hover:scale-110 hover:shadow-2xl active:scale-95 transition-all items-center justify-center group"
+                    aria-label="Apply to job"
+                  >
+                    <Check size={32} strokeWidth={3} className="group-hover:scale-110 transition-transform" />
+                  </button>
+                )}
+              </div>
+
+              {/* Mobile Action Buttons */}
+              {filteredJobs.length > 0 && currentIndex < filteredJobs.length && (
+                <div className="sm:hidden flex justify-center gap-6 mt-8">
+                  <button 
+                    onClick={() => animateSwipe("left")} 
+                    className="w-16 h-16 rounded-full bg-white border-2 border-slate-200 text-red-500 shadow-lg active:scale-95 transition-all flex items-center justify-center"
+                  >
+                    <X size={28} strokeWidth={2.5} />
+                  </button>
+                  <button 
+                    onClick={() => animateSwipe("right")} 
+                    className="w-20 h-20 rounded-full bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-xl active:scale-95 transition-all flex items-center justify-center"
+                  >
+                    <Check size={32} strokeWidth={3} />
                   </button>
                 </div>
-              ) : (
-                filteredJobs.map((job, idx) => renderCard(job, idx))
               )}
             </div>
+          </main>
+        </div>
 
-            {filteredJobs.length > 0 && currentIndex < filteredJobs.length && (
-              <div className="flex justify-center gap-12">
+        {/* Filter Modal */}
+        {showFilters && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+            <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 w-full max-w-lg border border-slate-200 overflow-y-auto max-h-[90vh]">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
+                  <SlidersHorizontal size={24} strokeWidth={2} className="text-slate-900" />
+                  Filters
+                </h2>
                 <button 
-                  onClick={() => animateSwipe("left")} 
-                  className="w-20 h-20 rounded-full bg-white text-red-500 text-3xl shadow-2xl hover:scale-110 active:scale-90 transition flex items-center justify-center"
+                  onClick={() => setShowFilters(false)} 
+                  className="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-100 rounded-lg"
                 >
-                  ✕
+                  <X size={24} strokeWidth={2} />
                 </button>
-                <button 
-                  onClick={() => animateSwipe("right")} 
-                  className="w-20 h-20 rounded-full bg-blue-600 text-white text-3xl shadow-2xl hover:scale-110 active:scale-90 transition flex items-center justify-center border-4 border-white/20"
-                >
-                  ✓
-                </button>
-              </div>
-            )}
-          </div>
-        </main>
-        <footer className="p-6 text-white/30 text-[10px] font-black tracking-[0.3em] text-center uppercase">
-          CareerMatch Matching Engine © 2025
-        </footer>
-      </div>
-
-      {/* Filter Modal */}
-      {showFilters && (
-        <div className="fixed inset-0 bg-indigo-950/80 backdrop-blur-md flex items-center justify-center z-[100] p-6">
-          <div className="bg-white rounded-[40px] shadow-2xl p-10 w-full max-w-md border border-white/20 overflow-y-auto max-h-[90vh]">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-3xl font-black text-gray-900 tracking-tighter">Filter</h2>
-              <button onClick={() => setShowFilters(false)} className="text-gray-300 hover:text-gray-500 text-4xl">×</button>
-            </div>
-            
-            <div className="space-y-6">
-              {/* Keywords */}
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Keywords</label>
-                <input 
-                  type="text" 
-                  value={filterJobPref} 
-                  onChange={(e) => setFilterJobPref(e.target.value)} 
-                  placeholder="Developer, Designer..." 
-                  className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-bold"
-                />
-              </div>
-
-              {/* Salary Range */}
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Salary Range (Monthly)</label>
-                <div className="flex gap-3">
-                  <input 
-                    type="number" 
-                    placeholder="Min" 
-                    value={minSalary} 
-                    onChange={(e) => setMinSalary(e.target.value)} 
-                    className="w-1/2 px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-bold"
-                  />
-                  <input 
-                    type="number" 
-                    placeholder="Max" 
-                    value={maxSalary} 
-                    onChange={(e) => setMaxSalary(e.target.value)} 
-                    className="w-1/2 px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-bold"
-                  />
-                </div>
-              </div>
-
-              {/* Experience Range */}
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Experience (Years)</label>
-                <div className="flex gap-3">
-                  <input 
-                    type="number" 
-                    placeholder="Min Yrs" 
-                    value={minExp} 
-                    onChange={(e) => setMinExp(e.target.value)} 
-                    className="w-1/2 px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-bold"
-                  />
-                  <input 
-                    type="number" 
-                    placeholder="Max Yrs" 
-                    value={maxExp} 
-                    onChange={(e) => setMaxExp(e.target.value)} 
-                    className="w-1/2 px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-bold"
-                  />
-                </div>
               </div>
               
-              {/* Education Level */}
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Minimum Education</label>
-                <select 
-                  value={filterEducationLevel} 
-                  onChange={(e) => setFilterEducationLevel(e.target.value)} 
-                  className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl outline-none font-bold appearance-none cursor-pointer"
-                >
-                  <option value="">Any Level</option>
-                  <option value="High School">High School</option>
-                  <option value="Bachelor's Degree">Bachelor's Degree</option>
-                  <option value="Master's Degree">Master's Degree</option>
-                </select>
-              </div>
-            </div>
+              <div className="space-y-5">
+                {/* Keywords */}
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                    <Search size={16} className="text-slate-600" />
+                    Keywords
+                  </label>
+                  <input 
+                    type="text" 
+                    value={filterJobPref} 
+                    onChange={(e) => setFilterJobPref(e.target.value)} 
+                    placeholder="Developer, Designer, Manager..." 
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none transition-all"
+                  />
+                </div>
 
-            <button 
-              onClick={() => setShowFilters(false)} 
-              className="w-full mt-10 py-5 bg-blue-600 text-white font-black rounded-3xl shadow-xl shadow-blue-200 hover:bg-blue-700 transition active:scale-95"
-            >
-              APPLY FILTERS
-            </button>
+                {/* Salary Range */}
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                    <DollarSign size={16} className="text-slate-600" />
+                    Salary Range
+                  </label>
+                  <div className="flex gap-3">
+                    <input 
+                      type="number" 
+                      placeholder="Min" 
+                      value={minSalary} 
+                      onChange={(e) => setMinSalary(e.target.value)} 
+                      className="w-1/2 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none transition-all"
+                    />
+                    <input 
+                      type="number" 
+                      placeholder="Max" 
+                      value={maxSalary} 
+                      onChange={(e) => setMaxSalary(e.target.value)} 
+                      className="w-1/2 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Experience Range */}
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                    <Clock size={16} className="text-slate-600" />
+                    Experience (Years)
+                  </label>
+                  <div className="flex gap-3">
+                    <input 
+                      type="number" 
+                      placeholder="Min" 
+                      value={minExp} 
+                      onChange={(e) => setMinExp(e.target.value)} 
+                      className="w-1/2 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none transition-all"
+                    />
+                    <input 
+                      type="number" 
+                      placeholder="Max" 
+                      value={maxExp} 
+                      onChange={(e) => setMaxExp(e.target.value)} 
+                      className="w-1/2 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+                
+                {/* Education Level */}
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
+                    <GraduationCap size={16} className="text-slate-600" />
+                    Education Level
+                  </label>
+                  <select 
+                    value={filterEducationLevel} 
+                    onChange={(e) => setFilterEducationLevel(e.target.value)} 
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-slate-900 focus:border-slate-900 transition-all"
+                  >
+                    <option value="">Any Level</option>
+                    <option value="High School">High School</option>
+                    <option value="Bachelor's Degree">Bachelor's Degree</option>
+                    <option value="Master's Degree">Master's Degree</option>
+                  </select>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setShowFilters(false)} 
+                className="w-full mt-6 py-3 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-800 transition-colors shadow-lg"
+              >
+                Apply Filters
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </SeekerLayout>
   );
 }
