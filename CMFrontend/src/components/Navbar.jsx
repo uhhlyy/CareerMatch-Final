@@ -91,7 +91,7 @@ export default function Navbar() {
               
               <a href="/roleselection">
                 <button className={`px-6 py-2.5 rounded-xl font-semibold ${isScrolled ? 'bg-blue-700 text-white hover:bg-blue-800' : 'bg-linear-to-r from-blue-600 to-blue-700 text-white hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5'} transition-all duration-200 active:scale-95`}>
-                  Get Started
+                  Login
                 </button>
               </a>
             </div>

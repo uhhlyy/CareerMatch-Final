@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaGoogle, FaFacebookF } from "react-icons/fa";
+// Removed: FaGoogle, FaFacebookF icons are no longer needed
 import backgroundImg from "../images/mainbg.jpg";
 import { useNavigate } from "react-router-dom";
 
@@ -35,10 +35,10 @@ const LoginSeeker = () => {
         localStorage.setItem('authToken', data.token);
 
         showPopup(data.message, "success");
-        
+
         setTimeout(() => {
           setFormData({ email: "", password: "" });
-          navigate("/SeekerMainPage"); 
+          navigate("/SeekerMainPage");
         }, 1500);
       } else {
         showPopup(data.message, "error");
@@ -49,15 +49,15 @@ const LoginSeeker = () => {
     }
   };
 
-  const handleGoogleLogin = () => showPopup("Google login clicked");
-  const handleFacebookLogin = () => showPopup("Facebook login clicked");
+  // Removed: handleGoogleLogin and handleFacebookLogin functions
 
   return (
     <div
       className="min-h-screen w-full bg-cover bg-center flex flex-col items-center justify-center px-4"
       style={{ backgroundImage: `url(${backgroundImg})` }}
     >
-      <div className="animate-fade-up opacity-0 delay-100 bg-white/70 backdrop-blur-md shadow-xl rounded-xl p-8 w-full max-w-md mt-10">
+      {/* Removed mt-10 for perfect vertical centering */}
+      <div className="animate-fade-up opacity-0 delay-100 bg-white/70 backdrop-blur-md shadow-xl rounded-xl p-8 w-full max-w-md">
         <h2 className="text-2xl font-bold text-center text-blue-900">
           Welcome to CareerMatch
         </h2>
@@ -91,9 +91,7 @@ const LoginSeeker = () => {
           </div>
 
           <div className="flex justify-end">
-            <a href="#" className="text-sm text-blue-600 hover:underline">
-              Forgot password?
-            </a>
+           
           </div>
 
           <button
@@ -103,7 +101,8 @@ const LoginSeeker = () => {
             Login
           </button>
 
-          <div className="flex items-center my-6">
+          {/* Removed: Social login divider and buttons */}
+          {/* <div className="flex items-center my-6">
             <div className="flex-1 h-px bg-gray-300"></div>
             <span className="px-2 text-gray-600">Or Continue With</span>
             <div className="flex-1 h-px bg-gray-300"></div>
@@ -125,7 +124,7 @@ const LoginSeeker = () => {
             >
               <FaFacebookF /> Facebook
             </button>
-          </div>
+          </div> */}
 
           <p className="mt-6 text-center text-gray-700">
             Don’t have an account?{" "}

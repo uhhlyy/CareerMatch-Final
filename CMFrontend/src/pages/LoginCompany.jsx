@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaGoogle, FaFacebookF } from "react-icons/fa";
+// Removed: FaGoogle, FaFacebookF icons are no longer imported
 import backgroundImg from "../images/mainbg.jpg";
 import { useNavigate } from "react-router-dom";
 
@@ -26,7 +26,7 @@ const LoginCompany = () => {
 
     if (formData.email === ADMIN_EMAIL && formData.password === ADMIN_PASSWORD) {
       localStorage.clear(); // Clear any previous sessions
-      
+
       localStorage.setItem('user_role', 'admin');
       localStorage.setItem('isLoggedIn', 'true');
       localStorage.setItem('user_id', 'system_admin');
@@ -62,7 +62,7 @@ const LoginCompany = () => {
           localStorage.setItem('employer_id', finalID);
           localStorage.setItem('user_role', 'employer'); // Added for consistency
           localStorage.setItem('isLoggedIn', 'true');
-          
+
           if (data.token) {
             localStorage.setItem('authToken', data.token);
           }
@@ -84,15 +84,14 @@ const LoginCompany = () => {
     }
   };
 
-  const handleGoogleLogin = () => showPopup("Google login clicked");
-  const handleFacebookLogin = () => showPopup("Facebook login clicked");
+  // Removed: handleGoogleLogin and handleFacebookLogin functions
 
   return (
     <div
       className="min-h-screen w-full bg-cover bg-center flex flex-col items-center justify-center px-4"
       style={{ backgroundImage: `url(${backgroundImg})` }}
     >
-      <div className="animate-fade-up opacity-0 delay-100 bg-white/70 backdrop-blur-md shadow-xl rounded-xl p-8 w-full max-w-md mt-10">
+      <div className="animate-fade-up opacity-0 delay-100 bg-white/70 backdrop-blur-md shadow-xl rounded-xl p-8 w-full max-w-md">
         <h2 className="text-2xl font-bold text-center text-blue-900">
           Welcome to CareerMatch
         </h2>
@@ -132,20 +131,7 @@ const LoginCompany = () => {
             Login
           </button>
 
-          <div className="flex items-center my-6">
-            <div className="flex-1 h-px bg-gray-300"></div>
-            <span className="px-2 text-gray-600">Or</span>
-            <div className="flex-1 h-px bg-gray-300"></div>
-          </div>
-
-          <div className="flex gap-4">
-            <button type="button" onClick={handleGoogleLogin} className="flex-1 flex items-center justify-center gap-2 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">
-              <FaGoogle /> Google
-            </button>
-            <button type="button" onClick={handleFacebookLogin} className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
-              <FaFacebookF /> Facebook
-            </button>
-          </div>
+          {/* Removed: Social Login section (Or divider and social buttons) */}
 
           <p className="mt-6 text-center text-gray-700">
             Don’t have an account?{" "}

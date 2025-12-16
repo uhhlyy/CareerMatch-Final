@@ -13,8 +13,8 @@ export default function NavbarAdmin() {
   };
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Stats', path: '/AdminDashboard' },
-    { icon: Building2, label: 'Users', path: '/AdminUsers' },
+    { icon: LayoutDashboard, label: 'Users', path: '/AdminDashboard' },
+    { icon: Building2, label: 'Stats', path: '/AdminUsers' },
     { icon: LogOut, label: 'Sign Out', action: handleLogout },
   ];
 

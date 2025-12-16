@@ -10,6 +10,7 @@ export default function CompanyMainPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const fetchJobs = async () => {
+    // Attempt to retrieve employer ID from multiple possible keys in localStorage
     const storedId = localStorage.getItem('employer_id') || localStorage.getItem('employerID') || localStorage.getItem('user_id');
     if (!storedId) {
       setLoading(false);
@@ -18,8 +19,10 @@ export default function CompanyMainPage() {
     setEmployerId(storedId);
 
     try {
+      // Fetch job listings for the specific employer ID
       const response = await fetch(`http://localhost/CareerMatch-Final/CMBackend/get_employer_jobs.php?employer_id=${storedId}`);
       const data = await response.json();
+      // Ensure data is an array before setting state
       setJobs(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Fetch Error:", error);
@@ -30,13 +33,13 @@ export default function CompanyMainPage() {
 
   useEffect(() => {
     fetchJobs();
-  }, []);
+  }, []); // Run only once on component mount
 
-  // Filter jobs based on type and search
+  // Filter jobs based on type and search query
   const filteredJobs = jobs.filter(job => {
     const matchesType = filterType === 'all' || job.type === filterType;
     const matchesSearch = job.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         job.location?.toLowerCase().includes(searchQuery.toLowerCase());
+                          job.location?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesType && matchesSearch;
   });
 
@@ -498,13 +501,14 @@ export default function CompanyMainPage() {
                   Close
                 </button>
                 <button 
-                  onClick={() => window.location.href = `/manage-applicants/${selectedJob.id}`}
+                  // >>> MODIFIED LINE: Redirects to /employerreview
+                  onClick={() => window.location.href = `/employerreview`}
                   className="flex-[2] px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-blue-600 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
-                  Manage {selectedJob.applicant_count || 0} Applicants
+                  Go to Employer Review Page
                 </button>
               </div>
             </div>

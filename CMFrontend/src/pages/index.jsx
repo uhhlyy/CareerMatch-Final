@@ -64,21 +64,21 @@ export default function Index() {
       label: "Active Jobs",
       icon: Briefcase,
       color: "from-blue-600 to-blue-500",
-      bgColor: "bg-blue-50"
+      bgColor: "bg-blue-500"
     },
     { 
       number: counts.employers, 
       label: "Top Companies",
       icon: Building2,
-      color: "from-purple-600 to-purple-500",
-      bgColor: "bg-purple-50"
+      color: "from-blue-600 to-blue-500",
+     bgColor: "bg-blue-500"
     },
     { 
       number: counts.employed, 
       label: "Successfully Hired",
       icon: Users,
-      color: "from-green-600 to-green-500",
-      bgColor: "bg-green-50"
+      color: "from-blue-600 to-blue-500",
+      bgColor: "bg-blue-500"
     }
   ];
 
@@ -104,33 +104,41 @@ export default function Index() {
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-        html, body, * {
-          font-family: 'Inter', sans-serif !important;
+        
+        * {
+          font-family: 'Inter', sans-serif;
         }
+        
         .reveal {
           opacity: 0;
           transform: translateY(30px);
           transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        
         .reveal.active {
           opacity: 1;
           transform: translateY(0);
         }
+        
         .delay-100 { transition-delay: 100ms; }
         .delay-200 { transition-delay: 200ms; }
         .delay-300 { transition-delay: 300ms; }
         .delay-400 { transition-delay: 400ms; }
+        
         @keyframes float {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-20px); }
         }
+        
         .float-animation {
           animation: float 6s ease-in-out infinite;
         }
+        
         @keyframes gradient-shift {
           0%, 100% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
         }
+        
         .gradient-animate {
           background-size: 200% 200%;
           animation: gradient-shift 8s ease infinite;
